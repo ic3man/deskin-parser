@@ -377,9 +377,9 @@ and eventually saving can be decribed by the following algorithm,</p>
 <dl class="method">
 <dt>
 <code class="descname">get_sentence_configuration</code><span class="sig-paren">(</span><em>sentence_number=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Returns the sentence configurations for the input file either all 
+<dd><p><em>Returns the sentence configurations for the input file either all 
 the sentences or for a specific sentence. The formal way to get all 
-configurations is to call the fuction without any arguments.</p>
+configurations is to call the fuction without any arguments.</em></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -402,7 +402,7 @@ followed by the type of token that was found.</p>
 <dl class="method">
 <dt>
 <code class="descname">get_sentence_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>Returns the number of sentences in the file.</p>
+<dd><p><em>Returns the number of sentences in the file.</em></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -420,7 +420,7 @@ followed by the type of token that was found.</p>
 <dl class="method">
 <dt>
 <code class="descname">get_token_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>Total number of unique tokens in the input file.</p>
+<dd><p><em>Returns the total number of unique tokens in the input file.</em></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -436,12 +436,23 @@ followed by the type of token that was found.</p>
 <dl class="method">
 <dt>
 <code class="descname">get_token_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
+<dd><p><em>Map of token distribution i.e. map of token to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of token to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt>
 <code class="descname">get_token_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>List of unique tokens in the input file.</p>
+<dd><p><em>Returns the list of unique tokens in the input file.</em></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

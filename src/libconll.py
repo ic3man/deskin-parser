@@ -97,7 +97,7 @@ class CoNLLMetaData:
             self.save_metadata(meta_file=meta_file)
 
     def get_sentence_count(self):
-        """ Returns the number of sentences in the file.
+        """ *Returns the number of sentences in the file.*
         
         :param: Nothing
         :return: The number of sentencs.
@@ -106,9 +106,9 @@ class CoNLLMetaData:
         return len(self.sentence_configuration)
     
     def get_sentence_configuration(self, sentence_number=None):
-        """ Returns the sentence configurations for the input file either all 
+        """ *Returns the sentence configurations for the input file either all 
         the sentences or for a specific sentence. The formal way to get all 
-        configurations is to call the fuction without any arguments.
+        configurations is to call the fuction without any arguments.*
         
         :param int sentence_number: The specific sentence configuaration to return.
         :return: One or all the sentence configurations.
@@ -123,7 +123,7 @@ class CoNLLMetaData:
         return self.sentence_configuration.get(sentence_number)
     
     def get_token_count(self):
-        """ Total number of unique tokens in the input file.
+        """ *Returns the total number of unique tokens in the input file.*
         
         :return: number of unique tokens.
         :rtype: int
@@ -131,7 +131,7 @@ class CoNLLMetaData:
         return len(self.token_distribution_map)
     
     def get_token_list(self):
-        """ List of unique tokens in the input file.
+        """ *Returns the list of unique tokens in the input file.*
         
         :return: list of unique tokens.
         :rtype: list[str]
@@ -139,6 +139,11 @@ class CoNLLMetaData:
         return self.token_distribution_map.keys()
         
     def get_token_distribution(self):
+        """ *Map of token distribution i.e. map of token to its frequency.*
+        
+        :return: map of token to its frequency.
+        :rtype: map[str, int]
+        """
         return self.token_distribution_map
         
     def get_lemma_count(self):
