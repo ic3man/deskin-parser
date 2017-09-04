@@ -1,0 +1,295 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>utilities &#8212; Deskin-Parser 0.1b documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for utilities</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">- Created on Wed Jul 26 10:29:43 2017</span>
+<span class="sd">- Deskin - Orange Labs - Lannion - France</span>
+
+<span class="sd">.. module:: utilities</span>
+<span class="sd">    :platform: UNIX/Linux</span>
+<span class="sd">    :synopsis: Collection of the common methods for deskin parser functionalities</span>
+
+<span class="sd">.. moduleauthor:: Munshi Asadullah &lt;munshi.asadullah@orange.com&gt;</span>
+
+<span class="sd">*The common methods and constants useful for deskin parser functionality and</span>
+<span class="sd">not restricted to a singel module or a single class. One can call these</span>
+<span class="sd">variables global dependencies for the parser functionality*</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="kn">import</span> <span class="nn">exceptions</span> <span class="k">as</span> <span class="nn">exp</span>
+
+<span class="c1"># constants: vector definition --------------------------------------------</span>
+<span class="c1"># TODO: add or update if needed -------------------------------------------</span>
+<span class="n">TOKEN</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to token or surface form of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">LEMMA</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to lemma of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">GPOS</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to general PoS of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">POS</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to deailes or more granuler PoS of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">MORPH</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to morphological definition of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">RELATION</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="sd">&quot;&quot;&quot; Pertaining to dependency relation of a unit element&quot;&quot;&quot;</span>
+
+<span class="n">ONE_HOT_VECTOR</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="sd">&quot;&quot;&quot; One hot encoded vector&quot;&quot;&quot;</span>
+
+<span class="n">EXTERNAL_EMBEDDING</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="sd">&quot;&quot;&quot; Some sort of external embedding&quot;&quot;&quot;</span>
+
+<span class="n">SIMPLE_RELATION</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="sd">&quot;&quot;&quot; Defining the connection of an unit element to a relation through the</span>
+<span class="sd">existance of the element in a particuler relation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">DETAIL_RELATION</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="sd">&quot;&quot;&quot; Defining the connection of an unit element to a relation through both </span>
+<span class="sd">the existance of the element in a particuler relation and whether it is the </span>
+<span class="sd">head or the dependance.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">ONE_HOT_VECTOR_DIMENSION_MULTIPLYER</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="sd">&quot;&quot;&quot; In case of one hot encoded vector definition the vector size multiplier </span>
+<span class="sd">allows the accomodation of new entitis to be incorporated in the vector.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># constants: token definition type ----------------------------------------</span>
+<span class="c1"># TODO: add or update if needed -------------------------------------------</span>
+<span class="n">BASIC_TEN_SLOT_TYPE</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="sd">&quot;&quot;&quot; The basic format of a line (a token definition) in CoNLL format </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">COMPOUND_DEFINITION</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="sd">&quot;&quot;&quot; A newer addition that represents the contraction (e.g. du = de + le) that</span>
+<span class="sd">has been split into two tokens. The representation is the token IDs that are </span>
+<span class="sd">originaly together.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">#=====================</span>
+
+<span class="c1"># constants: metadata related</span>
+<span class="c1"># TODO: add or update if needed</span>
+<span class="n">META_EXTENSION</span> <span class="o">=</span> <span class="s1">&#39;.cmeta&#39;</span>
+<span class="sd">&quot;&quot;&quot; Extension for the metadata file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">HASH_BLOCKSIZE</span> <span class="o">=</span> <span class="mi">65536</span>
+<span class="sd">&quot;&quot;&quot; Default buffer size for file hash generation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">META_KEYS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;file hash value&#39;</span><span class="p">,</span> <span class="s1">&#39;sentence config&#39;</span><span class="p">,</span> <span class="s1">&#39;token distribut&#39;</span><span class="p">,</span> 
+             <span class="s1">&#39;lemma distribut&#39;</span><span class="p">,</span> <span class="s1">&#39;gpos distributn&#39;</span><span class="p">,</span> <span class="s1">&#39;pos distributon&#39;</span><span class="p">,</span> 
+             <span class="s1">&#39;morph distribut&#39;</span><span class="p">,</span> <span class="s1">&#39;relation distrb&#39;</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot; Metadata data structure keys for json export and import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">#=====================</span>
+
+<div class="viewcode-block" id="generate_hash"><a class="viewcode-back" href="../deskinparser_index.html#utilities.generate_hash">[docs]</a><span class="k">def</span> <span class="nf">generate_hash</span><span class="p">(</span><span class="n">source_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1"># - DEF::START ---------------------------</span>
+    
+    <span class="sd">&quot;&quot;&quot; Method to generate the hash value (SHA1) for the given input file </span>
+<span class="sd">    (*source_file*). Primary use is the comparison of a file in two different </span>
+<span class="sd">    time to test consistency.</span>
+<span class="sd">    </span>
+<span class="sd">    **Args:**</span>
+<span class="sd">        - *source_file* (str): The full path of the file to be hashed.</span>
+<span class="sd">    </span>
+<span class="sd">    **Kwargs:**</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    **Returns:**</span>
+<span class="sd">        (*str*) The hash code for the input file</span>
+<span class="sd">    </span>
+<span class="sd">    **Raises:**</span>
+<span class="sd">        - *utilsException*: If there is a path error *i.e.* empty or invalid path</span>
+<span class="sd">        is provided.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; generate_hash(source_file=&#39;/my/own/path/fakedata.conll&#39;)</span>
+<span class="sd">    &#39;328eabe02b7e4540531681be603d51c5a0d97c53&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    .. Note::</span>
+<span class="sd">        The source file cannot be None, has to be a String containing complete </span>
+<span class="sd">        path and must exist otherwise False will be returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># &quot;None&quot; is not a valid source file</span>
+    <span class="k">if</span> <span class="n">source_file</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># genException::000-0A</span>
+        <span class="k">raise</span> <span class="n">exp</span><span class="o">.</span><span class="n">genException</span><span class="p">(</span><span class="n">expType</span><span class="o">=</span><span class="s1">&#39;ERROR&#39;</span><span class="p">,</span> <span class="n">expID</span><span class="o">=</span><span class="s1">&#39;000-0A&#39;</span><span class="p">,</span> 
+                               <span class="n">expTitle</span><span class="o">=</span><span class="s1">&#39;source file == None&#39;</span><span class="p">,</span> 
+                               <span class="n">expDetail</span><span class="o">=</span><span class="s1">&#39;file path cannot be &quot;None&quot; ... must provide a valid path&#39;</span><span class="p">,</span> 
+                               <span class="n">expValue</span><span class="o">=</span><span class="n">source_file</span><span class="p">)</span>
+    <span class="c1"># if the source file does not exist</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_file</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">source_file</span><span class="p">):</span>
+        <span class="c1"># genException::000-0B</span>
+        <span class="k">raise</span> <span class="n">exp</span><span class="o">.</span><span class="n">genException</span><span class="p">(</span><span class="n">expType</span><span class="o">=</span><span class="s1">&#39;ERROR&#39;</span><span class="p">,</span> <span class="n">expID</span><span class="o">=</span><span class="s1">&#39;000-0B&#39;</span><span class="p">,</span> 
+                               <span class="n">expTitle</span><span class="o">=</span><span class="s1">&#39;source file path error&#39;</span><span class="p">,</span> 
+                               <span class="n">expDetail</span><span class="o">=</span><span class="s1">&#39;a valid source file name with full valid path is needed&#39;</span><span class="p">,</span> 
+                               <span class="n">expValue</span><span class="o">=</span><span class="n">source_file</span><span class="p">)</span>
+    <span class="c1"># now we are ready to generate the hash value</span>
+    <span class="n">hasher</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">source_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sFile</span><span class="p">:</span>
+        <span class="n">buff</span> <span class="o">=</span> <span class="n">sFile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">HASH_BLOCKSIZE</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">hasher</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+            <span class="n">buff</span> <span class="o">=</span> <span class="n">sFile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">HASH_BLOCKSIZE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hasher</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+<span class="c1"># ----------------------------------------------------------------- DEF:: END -</span>
+
+<div class="viewcode-block" id="is_integer"><a class="viewcode-back" href="../deskinparser_index.html#utilities.is_integer">[docs]</a><span class="k">def</span> <span class="nf">is_integer</span><span class="p">(</span><span class="n">test_val</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1"># - DEF::START ---------------------------------</span>
+    
+    <span class="sd">&quot;&quot;&quot; Method to test if the test value (*test_val*) is a valid integer or not. </span>
+<span class="sd">    If the test value is an integer **True** will be returned other wise a **False** </span>
+<span class="sd">    will be returned.    </span>
+<span class="sd">    </span>
+<span class="sd">    **Args:**</span>
+<span class="sd">        - *test_val* (str/int/float/double): The value to be tested    </span>
+<span class="sd">    **Kwargs:**</span>
+<span class="sd">        None    </span>
+<span class="sd">    **Returns:**</span>
+<span class="sd">        (*boolean*)</span>
+<span class="sd">    **Raises:**</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; is_integer(test_val=&quot;23&quot;)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_integer(test_val=2.0)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_integer(test_val=&quot;2.33&quot;)</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">test_val</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+<span class="c1"># ----------------------------------------------------------------- DEF:: END -</span>
+
+<div class="viewcode-block" id="doesTheFileExist"><a class="viewcode-back" href="../deskinparser_index.html#utilities.doesTheFileExist">[docs]</a><span class="k">def</span> <span class="nf">doesTheFileExist</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1"># - DEF::START --------------------------</span>
+    <span class="sd">&quot;&quot;&quot; Method to check if file path (*file_path*) is correct and the file </span>
+<span class="sd">    actually exists. </span>
+<span class="sd">    </span>
+<span class="sd">    **Args:**</span>
+<span class="sd">        - *file_path* (str): The full path of the file to be tested.</span>
+<span class="sd">    </span>
+<span class="sd">    **Kwargs:**</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    **Returns:**</span>
+<span class="sd">        None</span>
+<span class="sd">    </span>
+<span class="sd">    **Raises:**</span>
+<span class="sd">        - *utilsException*:: if there is a path error *i.e.* empty or invalid path</span>
+<span class="sd">        is provided.</span>
+
+<span class="sd">    &gt;&gt;&gt; doesTheFileExist(file_path=&#39;/my/own/path/fakedata.conll&#39;, debug_id=&#39;fake:002&#39;, </span>
+<span class="sd">                         called_from=&#39;FakeClass[fakemodule]::fakeDef()&#39;)</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># no file path being provided -----------------------------------------</span>
+    <span class="k">if</span> <span class="n">file_path</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># genException::000-1A</span>
+        <span class="k">raise</span> <span class="n">exp</span><span class="o">.</span><span class="n">genException</span><span class="p">(</span><span class="n">expType</span><span class="o">=</span><span class="s1">&#39;ERROR&#39;</span><span class="p">,</span> <span class="n">expID</span><span class="o">=</span><span class="s1">&#39;000-1A&#39;</span><span class="p">,</span> 
+                               <span class="n">expTitle</span><span class="o">=</span><span class="s1">&#39;file path == None&#39;</span><span class="p">,</span> 
+                               <span class="n">expDetail</span><span class="o">=</span><span class="s1">&#39;file path cannot be &quot;None&quot; ... must provide a valid path&#39;</span><span class="p">,</span> 
+                               <span class="n">expValue</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="c1"># an invalid path has been provided -----------------------------------</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+        <span class="c1"># genException::000-1B</span>
+        <span class="k">raise</span> <span class="n">exp</span><span class="o">.</span><span class="n">genException</span><span class="p">(</span><span class="n">expType</span><span class="o">=</span><span class="s1">&#39;ERROR&#39;</span><span class="p">,</span> <span class="n">expID</span><span class="o">=</span><span class="s1">&#39;000-1B&#39;</span><span class="p">,</span> 
+                               <span class="n">expTitle</span><span class="o">=</span><span class="s1">&#39;file path error&#39;</span><span class="p">,</span> 
+                               <span class="n">expDetail</span><span class="o">=</span><span class="s1">&#39;full valid path of an existing file is needed&#39;</span><span class="p">,</span> 
+                               <span class="n">expValue</span><span class="o">=</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+<span class="c1"># ----------------------------------------------------------------- DEF:: END -</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../deskinparser_index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Deskin - Orange Labs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

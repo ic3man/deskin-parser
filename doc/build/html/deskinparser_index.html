@@ -1,0 +1,892 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Deskin-Parser documentation! &#8212; Deskin-Parser 0.1b documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="deskin-parser-documentation">
+<h1>Deskin-Parser documentation!<a class="headerlink" href="#deskin-parser-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="api-description">
+<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="contents">
+<h3>Contents:<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+</div>
+<ul class="simple">
+<li><code class="xref py py-mod docutils literal"><span class="pre">deskinparser.libutilities</span></code></li>
+<li><code class="xref py py-mod docutils literal"><span class="pre">deskinparser.libconll</span></code></li>
+<li><code class="xref py py-mod docutils literal"><span class="pre">deskinparser.libvector</span></code></li>
+<li><code class="xref py py-mod docutils literal"><span class="pre">deskinparser.libexceptions</span></code></li>
+</ul>
+<div class="section" id="module-deskinparser-libutilities">
+<h4><strong># Module :: deskinparser.libutilities</strong>:<a class="headerlink" href="#module-deskinparser-libutilities" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Created on Wed Jul 26 10:29:43 2017</li>
+<li>Deskin - Orange Labs - Lannion - France</li>
+</ul>
+<span class="target" id="module-libutilities"></span><p><em>The common methods and constants useful for deskin parser functionality and
+not restricted to a singel module or a single class. One can call these
+variables global dependencies for the parser functionality</em></p>
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">BASIC_TEN_SLOT_TYPE</code><em class="property"> = 10</em></dt>
+<dd><p>The basic format of a line (a token definition) in CoNLL format</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">COMPOUND_DEFINITION</code><em class="property"> = 11</em></dt>
+<dd><p>A newer addition that represents the contraction (e.g. du = de + le) that
+has been split into two tokens. The representation is the token IDs that are
+originaly together.</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">DETAIL_RELATION</code><em class="property"> = 9</em></dt>
+<dd><p>Defining the connection of an unit element to a relation through both
+the existance of the element in a particuler relation and whether it is the
+head or the dependance.</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">EXTERNAL_EMBEDDING</code><em class="property"> = 7</em></dt>
+<dd><p>Some sort of external embedding</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">GPOS</code><em class="property"> = 2</em></dt>
+<dd><p>Pertaining to general PoS of a unit element</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">HASH_BLOCKSIZE</code><em class="property"> = 65536</em></dt>
+<dd><p>Default buffer size for file hash generation</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">LEMMA</code><em class="property"> = 1</em></dt>
+<dd><p>Pertaining to lemma of a unit element</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">META_EXTENSION</code><em class="property"> = '.cmeta'</em></dt>
+<dd><p>Extension for the metadata file</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">MORPH</code><em class="property"> = 4</em></dt>
+<dd><p>Pertaining to morphological definition of a unit element</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">ONE_HOT_VECTOR</code><em class="property"> = 6</em></dt>
+<dd><p>One hot encoded vector</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">ONE_HOT_VECTOR_DIMENSION_MULTIPLYER</code><em class="property"> = 1.5</em></dt>
+<dd><p>In case of one hot encoded vector definition the vector size multiplier
+allows the accomodation of new entitis to be incorporated in the vector.</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">POS</code><em class="property"> = 3</em></dt>
+<dd><p>Pertaining to deailes or more granuler PoS of a unit element</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">RELATION</code><em class="property"> = 5</em></dt>
+<dd><p>Pertaining to dependency relation of a unit element</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">RELATION_DISTRIBUTION</code><em class="property"> = 19</em></dt>
+<dd><p>Metadata data structure keys for json export and import</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">SIMPLE_RELATION</code><em class="property"> = 8</em></dt>
+<dd><p>Defining the connection of an unit element to a relation through the
+existance of the element in a particuler relation</p>
+</dd></dl>
+
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">TOKEN</code><em class="property"> = 0</em></dt>
+<dd><p>Pertaining to token or surface form of a unit element</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">doesTheFileExist</code><span class="sig-paren">(</span><em>file_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libutilities.html#doesTheFileExist"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Method to check if file path (<em>file_path</em>) is correct and the file 
+actually exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The full path of the file to be tested.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True or False.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>noneFilePathError</strong> – If the the file path is None.</li>
+<li><strong>nonStringFilePathError</strong> – If the the file path is not a String.</li>
+<li><strong>zeroLengthStringPathError</strong> – If the the file path is a zero length String.</li>
+<li><strong>pathDoesNotExistError</strong> – If file path doesnot exist.</li>
+<li><strong>pathIsDirectoryException</strong> – If the path is a directory.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">doesTheFileExist</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="s1">&#39;/my/own/path/fakedata.conll&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">generate_hash</code><span class="sig-paren">(</span><em>source_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libutilities.html#generate_hash"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Method to generate the hash value (SHA1) for the given input file 
+(<em>source_file</em>). Primary use is the comparison of a file in two different 
+time to test consistency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The full path of the file to be hashed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The hash code for the input file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>invalidFilePathException</strong> – Source file path is not valid.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generate_hash</span><span class="p">(</span><span class="n">source_file</span><span class="o">=</span><span class="s1">&#39;/my/own/path/fakedata.conll&#39;</span><span class="p">)</span>
+<span class="go">&#39;328eabe02b7e4540531681be603d51c5a0d97c53&#39;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The source file cannot be None, has to be a String containing complete 
+path and must exist.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">is_integer</code><span class="sig-paren">(</span><em>test_val=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libutilities.html#is_integer"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Method to test if the test value (<em>test_val</em>) is a valid integer or not. 
+If the test value is an integer <strong>True</strong> will be returned other wise a <strong>False</strong> 
+will be returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>test_val</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) – The value to be tested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True or False</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_integer</span><span class="p">(</span><span class="n">test_val</span><span class="o">=</span><span class="s2">&quot;23&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_integer</span><span class="p">(</span><span class="n">test_val</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_integer</span><span class="p">(</span><span class="n">test_val</span><span class="o">=</span><span class="s2">&quot;2.33&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-deskinparser-libconll">
+<h4><strong># Module :: deskinparser.libconll</strong>:<a class="headerlink" href="#module-deskinparser-libconll" title="Permalink to this headline">¶</a></h4>
+<p>Created on Thu Jun 22 16:50:26 2017</p>
+<p>Deskin - Orange Labs - Lannion - France</p>
+<span class="target" id="module-libconll"></span><p><em>Module containing classes to process a CoNLL format text file for further use.
+The Primary use is as a sentence stream for quick travarsal of the content.</em></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLMetaData</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p><em>The class that shall provide the data structure and the supporting 
+methods to store, manipulate and access metadata extracted from a file in 
+CoNLL format. CoNLL metadata initialization method will allow us to make 
+decisions regarding metadata analysis, loading and saving.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The input file in CoNLL format</li>
+<li><strong>meta_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The metadata file associated with the input_file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>invalidFilePathException</strong> – If the input file path is invalid.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The decisions making process of loading metadata or generate 
+and eventually saving can be decribed by the following algorithm,</p>
+<ul class="last simple">
+<li>If the meatfile exists <em>i.e.</em> a valid path is provides and the file         exists, we shall check if there is any thing in the file <em>i.e.</em> the         length of the file is not zero.</li>
+<li>Now we shall try to open the file.</li>
+<li>Once opened we shall check if all the data keys are present.</li>
+<li>If so we shall retrieve the input hash value and compare it with the         calculated input file hash value to determine if the input file is the         actual input file associeated with the metadata.</li>
+<li>Failiure at any of the previous steps will invoce the analysis method         thus genarating the metadata ans saving it.</li>
+<li>If metadata file name provided exist the new metadata will be saved         by rewriting the file.</li>
+<li>Otherwise if the directory path of the metafile name exist or the         metfile name is an existing directory itself, the new metadata will be         saved in that directory.</li>
+<li>For any other case the metafile will be generated in the same path         where the input file is.</li>
+</ul>
+</div>
+<dl class="method">
+<dt>
+<code class="descname">analyze</code><span class="sig-paren">(</span><em>in_file=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.analyze"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">detect_token_type</code><span class="sig-paren">(</span><em>tok=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.detect_token_type"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_generic_pos_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_generic_pos_distribution"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_generic_pos_list"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_lemma_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_lemma_distribution"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_lemma_list"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_morphological_class_value_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_morphological_class_value_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_pos_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_pos_distribution"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_pos_list"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_relation_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_relation_distribution"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_sentence_configuration</code><span class="sig-paren">(</span><em>sentence_number=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_sentence_configuration"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Returns the sentence configurations for the input file either all 
+the sentences or for a specific sentence. The formal way to get all 
+configurations is to call the fuction without any arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sentence_number</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – The specific sentence configuaration to return.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">One or all the sentence configurations.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list(list(<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a>, <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a>)) or <a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a>(<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a>, list(list(<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a>, <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a>)))</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Sentence configuration is a list of tuples … token ID as found 
+followed by the type of token that was found.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_sentence_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_sentence_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Returns the number of sentences in the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The number of sentencs.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_token_count"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Total number of unique tokens in the input file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique tokens.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_token_distribution"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.get_token_list"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>List of unique tokens in the input file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique tokens.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a>]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">load_metadate</code><span class="sig-paren">(</span><em>meta_file=None</em>, <em>current_hash=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.load_metadate"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">save_metadata</code><span class="sig-paren">(</span><em>meta_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.save_metadata"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">update_morphology_map</code><span class="sig-paren">(</span><em>morph_string=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLMetaData.update_morphology_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLReader</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="method">
+<dt>
+<code class="descname">get_current_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader.get_current_sentence"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader.get_metadata"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_next_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader.get_next_sentence"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_previous_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader.get_previous_sentence"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">read_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libconll.html#CoNLLReader.read_sentence"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-deskinparser-libvector">
+<h4><strong># Module :: deskinparser.libvector</strong>:<a class="headerlink" href="#module-deskinparser-libvector" title="Permalink to this headline">¶</a></h4>
+<p>Created on Tue Jul 18 11:21:34 2017</p>
+<p>Deskin - Orange Labs - Lannion - France</p>
+<span class="target" id="module-libvector"></span><p>descript: to be done soon</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">unitVectorConfiguration</code><span class="sig-paren">(</span><em>reader=None</em>, <em>external=None</em>, <em>relation=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libvector.html#unitVectorConfiguration"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>The class to be used to define the input vectors for the parsing task. 
+A default configuration will be initialized along with the API 
+providing options to configure as per necessary.</p>
+<dl class="attribute">
+<dt>
+<code class="descname">BASE_CONFIGURATION</code><em class="property"> = {0: 6, 1: 6, 2: 6, 3: 6, 4: 6, 5: 8}</em></dt>
+<dd><p>The base configuration is the basis of how the unit vectors shall be
+defined. The update to this configuration will occure, during the
+execution of the constructor or afterward through the updates of other
+models e.g. update of “EXTERNAL_EMBEDDING” will also update this
+configuration model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">EXTERNAL_EMBEDDING</code><em class="property"> = {0: None, 1: None, 2: None, 3: None, 4: None, 5: None}</em></dt>
+<dd><p>The external embedding model allowes the use of externer embeddings for
+different elements of a unit vector. The changes for this model can be
+made during the execution of the constructor or afterward through
+update method ().</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">update_configuration</code><span class="sig-paren">(</span><em>rel_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libvector.html#unitVectorConfiguration.update_configuration"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">validate_external_embedding</code><span class="sig-paren">(</span><em>embedding_map=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libvector.html#unitVectorConfiguration.validate_external_embedding"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-deskinparser-libexceptions">
+<h4><strong># Module :: deskinparser.libexceptions</strong>:<a class="headerlink" href="#module-deskinparser-libexceptions" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Created on Wed Aug 23 13:51:46 2017</li>
+<li>Deskin - Orange Labs - Lannion - France</li>
+</ul>
+<span class="target" id="module-libexceptions"></span><p><em>The user-defined exceptions are put together in this libreary.</em></p>
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">dpGenericException</code><span class="sig-paren">(</span><em>expType='GENERIC'</em>, <em>expID=-1</em>, <em>expTitle='generic debug event'</em>, <em>expDetail='generic debug event - details unknown'</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#dpGenericException"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p><em>The base exception class for the deskinparser API. This can replace
+the requirement of an error or warning message generator and make the error
+tracking easier. Mostly going to be used as the base class for specific
+exceptions.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expType</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The type of exception e.g. ERROR, WARNING etc..</li>
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expTitle</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Title of the exception message.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#dpGenericException.get_value"><span class="viewcode-link">[source]</span></a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">invalidFilePathException</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expDetail=None</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#invalidFilePathException"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.dpGenericException</span></code></p>
+<p><em>The base class for the exceptions regarding file acces issues concerning
+path value or path errors. This is also the root exception raised for file
+access issues</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">nonStringFilePathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#nonStringFilePathError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
+<p><em>The exception class is raised if the provided file path is not a String</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">noneFilePathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#noneFilePathError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
+<p><em>The exception class is raised if the file path provided having a value
+None.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">pathDoesNotExistError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#pathDoesNotExistError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
+<p><em>The exception class is raised if the provided file path is not a path
+at all … nither file nor a directory</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">pathIsDirectoryException</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#pathIsDirectoryException"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
+<p><em>The exception class is raised if the provided file path is a  directory
+rather than a file</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">zeroLengthStringPathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/libexceptions.html#zeroLengthStringPathError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
+<p><em>The exception class is raised if the provided file path is a zero 
+length String</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expID</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Unique ID associated with an exception.</li>
+<li><strong>expDetail</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Description of the exception message.</li>
+<li><strong>expValue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – The value that causes the exception.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Deskin-Parser documentation!</a><ul>
+<li><a class="reference internal" href="#api-description">API Description</a><ul>
+<li><a class="reference internal" href="#contents">Contents:</a><ul>
+<li><a class="reference internal" href="#module-deskinparser-libutilities"><strong># Module :: deskinparser.libutilities</strong>:</a></li>
+<li><a class="reference internal" href="#module-deskinparser-libconll"><strong># Module :: deskinparser.libconll</strong>:</a></li>
+<li><a class="reference internal" href="#module-deskinparser-libvector"><strong># Module :: deskinparser.libvector</strong>:</a></li>
+<li><a class="reference internal" href="#module-deskinparser-libexceptions"><strong># Module :: deskinparser.libexceptions</strong>:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/deskinparser_index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Deskin - Orange Labs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/deskinparser_index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,503 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>libconll &#8212; Deskin-Parser 0.1b documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for libconll</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Jun 22 16:50:26 2017</span>
+
+<span class="sd">Deskin - Orange Labs - Lannion - France</span>
+
+<span class="sd">.. module:: libconll</span>
+<span class="sd">    :platform: UNIX/Linux</span>
+<span class="sd">    :synopsis: CoNLL format text processing library</span>
+
+<span class="sd">.. moduleauthor:: Munshi Asadullah &lt;munshi.asadullah@orange.com&gt;</span>
+
+<span class="sd">*Module containing classes to process a CoNLL format text file for further use.</span>
+<span class="sd">The Primary use is as a sentence stream for quick travarsal of the content.*</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">from</span> <span class="nn">codecs</span> <span class="k">import</span> <span class="nb">open</span> <span class="k">as</span> <span class="n">utfOpen</span>
+
+<span class="kn">import</span> <span class="nn">libutilities</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">libexceptions</span> <span class="k">as</span> <span class="nn">exp</span>
+
+<span class="c1"># CLASS:: data-structure for the metadata of a CoNLL format file --------------</span>
+<span class="c1"># =============================================================================</span>
+<div class="viewcode-block" id="CoNLLMetaData"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData">[docs]</a><span class="k">class</span> <span class="nc">CoNLLMetaData</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; *The class that shall provide the data structure and the supporting </span>
+<span class="sd">    methods to store, manipulate and access metadata extracted from a file in </span>
+<span class="sd">    CoNLL format. CoNLL metadata initialization method will allow us to make </span>
+<span class="sd">    decisions regarding metadata analysis, loading and saving.*</span>
+<span class="sd">        </span>
+<span class="sd">    :param str input_file: The input file in CoNLL format</span>
+<span class="sd">    :param str meta_file: The metadata file associated with the input_file</span>
+<span class="sd">    :return: Nothing.</span>
+<span class="sd">    :raise invalidFilePathException: If the input file path is invalid.</span>
+<span class="sd">    </span>
+<span class="sd">    .. Note::</span>
+<span class="sd">        The decisions making process of loading metadata or generate </span>
+<span class="sd">        and eventually saving can be decribed by the following algorithm,</span>
+<span class="sd">        </span>
+<span class="sd">        - If the meatfile exists *i.e.* a valid path is provides and the file \</span>
+<span class="sd">        exists, we shall check if there is any thing in the file *i.e.* the \</span>
+<span class="sd">        length of the file is not zero.</span>
+<span class="sd">        - Now we shall try to open the file.</span>
+<span class="sd">        - Once opened we shall check if all the data keys are present.</span>
+<span class="sd">        - If so we shall retrieve the input hash value and compare it with the \</span>
+<span class="sd">        calculated input file hash value to determine if the input file is the \</span>
+<span class="sd">        actual input file associeated with the metadata.</span>
+<span class="sd">        - Failiure at any of the previous steps will invoce the analysis method \</span>
+<span class="sd">        thus genarating the metadata ans saving it.</span>
+<span class="sd">        - If metadata file name provided exist the new metadata will be saved \</span>
+<span class="sd">        by rewriting the file.</span>
+<span class="sd">        - Otherwise if the directory path of the metafile name exist or the \</span>
+<span class="sd">        metfile name is an existing directory itself, the new metadata will be \</span>
+<span class="sd">        saved in that directory.</span>
+<span class="sd">        - For any other case the metafile will be generated in the same path \</span>
+<span class="sd">        where the input file is.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1"># DEF:: START --------</span>
+        <span class="c1"># check input file path -----------------------------------------------</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">doesTheFileExist</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">exp</span><span class="o">.</span><span class="n">invalidFilePathException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">e</span>
+            <span class="k">raise</span> <span class="n">exp</span><span class="o">.</span><span class="n">invalidFilePathException</span><span class="p">(</span><span class="n">expID</span><span class="o">=</span><span class="s1">&#39;001-INPUT&#39;</span><span class="p">,</span> 
+                                               <span class="n">expDetail</span><span class="o">=</span><span class="s1">&#39;Input file path error detected.&#39;</span><span class="p">,</span> 
+                                               <span class="n">expValue</span><span class="o">=</span><span class="n">input_file</span><span class="p">)</span>
+        <span class="c1"># split the file path and the file name -------------------------------</span>
+        <span class="n">head</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+        <span class="c1"># class variables -----------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_location</span> <span class="o">=</span> <span class="n">head</span> <span class="c1">#-------------------------------------------- input file path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span> <span class="c1">#--------- input file name and extension</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_hash_value</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#------------------------------------------ hash value of the input file (for change in file monitoring)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">#------------------------------------- sentence number to file pointer offset map (starting with sentence 0)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># slelct the metadata file ... either the provided path or local path -        </span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">doesTheFileExist</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">meta_file</span><span class="p">)</span>              
+        <span class="k">except</span> <span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">noneFilePathError</span><span class="p">,</span> 
+                <span class="n">exp</span><span class="o">.</span><span class="n">nonStringFilePathError</span><span class="p">,</span> 
+                <span class="n">exp</span><span class="o">.</span><span class="n">zeroLengthStringPathError</span><span class="p">,</span> 
+                <span class="n">exp</span><span class="o">.</span><span class="n">pathDoesNotExistError</span><span class="p">):</span>
+            <span class="n">meta_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_location</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">+</span> <span class="n">utils</span><span class="o">.</span><span class="n">META_EXTENSION</span>
+        <span class="k">except</span> <span class="n">exp</span><span class="o">.</span><span class="n">pathIsDirectoryException</span><span class="p">:</span>
+            <span class="n">meta_file</span> <span class="o">=</span> <span class="n">meta_file</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">+</span> <span class="n">utils</span><span class="o">.</span><span class="n">META_EXTENSION</span>
+        <span class="c1"># analyze or load metadata --------------------------------------------</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_metadate</span><span class="p">(</span><span class="n">meta_file</span><span class="o">=</span><span class="n">meta_file</span><span class="p">,</span> <span class="n">current_hash</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">generate_hash</span><span class="p">(</span><span class="n">source_file</span><span class="o">=</span><span class="n">input_file</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">in_file</span><span class="o">=</span><span class="n">input_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">(</span><span class="n">meta_file</span><span class="o">=</span><span class="n">meta_file</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CoNLLMetaData.get_sentence_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_sentence_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_sentence_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the number of sentences in the file.</span>
+<span class="sd">        </span>
+<span class="sd">        :param: Nothing</span>
+<span class="sd">        :return: The number of sentencs.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_sentence_configuration"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_sentence_configuration">[docs]</a>    <span class="k">def</span> <span class="nf">get_sentence_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sentence_number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the sentence configurations for the input file either all </span>
+<span class="sd">        the sentences or for a specific sentence. The formal way to get all </span>
+<span class="sd">        configurations is to call the fuction without any arguments.</span>
+<span class="sd">        </span>
+<span class="sd">        :param int sentence_number: The specific sentence configuaration to return.</span>
+<span class="sd">        :return: One or all the sentence configurations.</span>
+<span class="sd">        :rtype: list(list(str, int)) or dict(int, list(list(str, int)))</span>
+<span class="sd">        </span>
+<span class="sd">        .. Note::</span>
+<span class="sd">            Sentence configuration is a list of tuples ... token ID as found </span>
+<span class="sd">            followed by the type of token that was found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sentence_number</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence_number</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_token_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_token_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_token_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Total number of unique tokens in the input file.</span>
+<span class="sd">        </span>
+<span class="sd">        :return: number of unique tokens.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_token_list"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_token_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_token_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; List of unique tokens in the input file.</span>
+<span class="sd">        </span>
+<span class="sd">        :return: list of unique tokens.</span>
+<span class="sd">        :rtype: list[str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.get_token_distribution"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_token_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_token_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.get_lemma_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_lemma_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_lemma_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_lemma_list"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_lemma_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_lemma_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.get_lemma_distribution"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_lemma_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_lemma_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_generic_pos_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_generic_pos_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_generic_pos_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_generic_pos_list"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_generic_pos_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_generic_pos_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.get_generic_pos_distribution"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_generic_pos_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_generic_pos_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_pos_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_pos_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_pos_list"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_pos_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.get_pos_distribution"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_pos_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_relation_count"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_relation_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_relation_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_relation_distribution"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_relation_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">get_relation_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.get_morphological_class_value_map"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.get_morphological_class_value_map">[docs]</a>    <span class="k">def</span> <span class="nf">get_morphological_class_value_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.detect_token_type"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.detect_token_type">[docs]</a>    <span class="k">def</span> <span class="nf">detect_token_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tok</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tok</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># empty token is a no no ------------------------------</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># in the presence of a valid token we can start figuring out the type of the token definition</span>
+        <span class="n">tokFragment</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tok</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokFragment</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span> <span class="c1"># the standard 10 slot CoNLL format</span>
+            <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">BASIC_TEN_SLOT_TYPE</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokFragment</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># compund description e.g. 3-4</span>
+            <span class="n">compound_parts</span> <span class="o">=</span> <span class="n">tokFragment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compound_parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="n">utils</span><span class="o">.</span><span class="n">is_integer</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">compound_parts</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">COMPOUND_DEFINITION</span>
+        <span class="c1"># ================================================================================================</span>
+        <span class="c1"># TODO: update this if...else sequence to make changes to the token types or add a totally new one</span>
+        <span class="c1"># ================================================================================================</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.save_metadata"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.save_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">save_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meta_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">json_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">utils</span><span class="o">.</span><span class="n">FILE_HASH_VALUE</span><span class="p">:</span>         <span class="bp">self</span><span class="o">.</span><span class="n">file_hash_value</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">SENTENCE_CONFIGURATION</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">TOKEN_DISTRIBUTION</span><span class="p">:</span>      <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">LEMMA_DISTRIBUTION</span><span class="p">:</span>      <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">GPOS_DISTRIBUTION</span><span class="p">:</span>       <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">POS_DISTRIBUTION</span><span class="p">:</span>        <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">MORPHOLOGY_DISTRIBUTION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="p">,</span>
+                     <span class="n">utils</span><span class="o">.</span><span class="n">RELATION_DISTRIBUTION</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span> <span class="p">}</span>
+        <span class="k">with</span> <span class="n">utfOpen</span><span class="p">(</span><span class="n">meta_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+           <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.load_metadate"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.load_metadate">[docs]</a>    <span class="k">def</span> <span class="nf">load_metadate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meta_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">current_hash</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">json_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">doesTheFileExist</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">meta_file</span><span class="p">):</span>
+                <span class="c1"># check if the metadata file is empty or not</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="c1"># now load the file</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="n">utfOpen</span><span class="p">(</span><span class="n">meta_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
+            <span class="c1"># loading metadata</span>
+            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+            <span class="c1"># we are done with file</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># check if invalid data type is loaded</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># check if all the keys are present</span>
+        <span class="k">elif</span> <span class="nb">set</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">META_KEYS</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>       
+        <span class="c1"># check if the hash value from the meta file matches the recalculated</span>
+        <span class="c1"># hash value indicating changes in the original file ------------------</span>
+        <span class="k">elif</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">FILE_HASH_VALUE</span><span class="p">)</span> <span class="o">!=</span> <span class="n">current_hash</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">file_hash_value</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">FILE_HASH_VALUE</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">SENTENCE_CONFIGURATION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">TOKEN_DISTRIBUTION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">LEMMA_DISTRIBUTION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">GPOS_DISTRIBUTION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">POS_DISTRIBUTION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">MORPHOLOGY_DISTRIBUTION</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">RELATION_DISTRIBUTION</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+        
+<div class="viewcode-block" id="CoNLLMetaData.update_morphology_map"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.update_morphology_map">[docs]</a>    <span class="k">def</span> <span class="nf">update_morphology_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">morph_string</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="c1"># debug input file name ---------------------</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;&gt;&gt;&gt; debug:: CoNLLMetaData :: update_morphology_map()&#39;</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;morph (value):: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">morph_string</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;morph (type):: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">morph_string</span><span class="p">))</span>
+        <span class="c1"># $ end debug $ -------------------------------------------------------</span>
+        <span class="k">if</span> <span class="n">morph_string</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">morph_string</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">morph_string</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">morph_string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">{})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">morphology_distribution_map</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span></div>
+    
+<div class="viewcode-block" id="CoNLLMetaData.analyze"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLMetaData.analyze">[docs]</a>    <span class="k">def</span> <span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># generate hash value -------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_hash_value</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">generate_hash</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
+        <span class="c1"># open file for processing --------------------------------------------</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">utfOpen</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
+        <span class="c1"># initiate local variables --------------------------------------------</span>
+        <span class="n">offsetValue</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="n">lineCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sentenceCounter</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="n">sentenceBuffer</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># process the file line by line ---------------------------------------</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fp</span><span class="p">:</span> <span class="c1"># read a lines ----------------------------------------</span>
+            <span class="n">lineCounter</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># increment line counter -------------------------</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span> <span class="c1"># --------------------------------------- either a sentence boundery or just an empty line</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentenceBuffer</span><span class="p">):</span> <span class="c1"># --------------------------------- just an empty line before any sentence is buffered</span>
+                    <span class="n">offsetValue</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+                    <span class="k">continue</span> <span class="c1"># let&#39;s go back to work --------------------------</span>
+                <span class="k">for</span> <span class="n">tokDef</span> <span class="ow">in</span> <span class="n">sentenceBuffer</span><span class="p">:</span> <span class="c1"># ------------------------------- cycle through the sentence buffer</span>
+                    <span class="n">tokType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_token_type</span><span class="p">(</span><span class="n">tokDef</span><span class="p">)</span> <span class="c1"># ---------------- detect the token type</span>
+                    <span class="k">if</span> <span class="n">tokType</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">BASIC_TEN_SLOT_TYPE</span><span class="p">:</span> <span class="c1"># ------------ actions to be taken if a basic 10 slot line is found</span>
+                        <span class="n">tid</span><span class="p">,</span> <span class="n">sur</span><span class="p">,</span> <span class="n">lem</span><span class="p">,</span> <span class="n">gpos</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">morph</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">rel</span><span class="p">,</span> <span class="n">idc0</span><span class="p">,</span> <span class="n">idc1</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tokDef</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+                        <span class="c1"># check if token ID (tid) is valid --------------------</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">tid</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tid</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_integer</span><span class="p">(</span><span class="n">test_val</span><span class="o">=</span><span class="n">tid</span><span class="p">):</span>
+                            <span class="n">errLine</span> <span class="o">=</span> <span class="n">lineCounter</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentenceBuffer</span><span class="p">)</span> <span class="o">+</span> <span class="n">sentenceBuffer</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tokDef</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                            <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span><span class="n">dClass</span><span class="o">=</span><span class="s1">&#39;CoNLLMetaData&#39;</span><span class="p">,</span>
+                                                   <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;analyze()&#39;</span><span class="p">,</span>
+                                                   <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;token id value erroe&#39;</span><span class="p">,</span>
+                                                   <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;invalid token id detected on line </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1"> ... exiting to system&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">errLine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_file_name</span><span class="p">()),</span>
+                                                   <span class="n">dElement</span><span class="o">=</span><span class="n">tokDef</span><span class="p">)</span>
+                            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># can&#39;t continue with wrong token ID -</span>
+                        
+                        <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span><span class="p">[</span><span class="n">sur</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sur</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span><span class="p">[</span><span class="n">lem</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemma_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lem</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span><span class="p">[</span><span class="n">gpos</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpos_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gpos</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span><span class="p">[</span><span class="n">pos</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="c1"># debug input file name ---------------------</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;&gt;&gt;&gt; debug:: CoNLLMetaData :: analyze()&#39;</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;morph (line </span><span class="si">{}</span><span class="s1">):: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lineCounter</span><span class="p">,</span> <span class="n">morph</span><span class="p">)</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;morph (type):: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">morph</span><span class="p">))</span>
+                        <span class="c1"># $ end debug $ -------------------------------------------------------</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">update_morphology_map</span><span class="p">(</span><span class="n">morph_string</span><span class="o">=</span><span class="n">morph</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span><span class="p">[</span><span class="n">rel</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relation_distribution_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rel</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="p">[</span><span class="n">sentenceCounter</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tid</span><span class="p">,</span> <span class="n">tokType</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="n">tokType</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">COMPOUND_DEFINITION</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="p">[</span><span class="n">sentenceCounter</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tid</span><span class="p">,</span> <span class="n">tokType</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span><span class="n">dClass</span><span class="o">=</span><span class="s1">&#39;CoNLLMetaData&#39;</span><span class="p">,</span>
+                                           <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;analyze()&#39;</span><span class="p">,</span>
+                                           <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;token type error&#39;</span><span class="p">,</span>
+                                           <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;invalid token type detected on line </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lineCounter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_file_name</span><span class="p">()),</span>
+                                           <span class="n">dElement</span><span class="o">=</span><span class="n">tokDef</span><span class="p">)</span>
+                <span class="n">sentenceBuffer</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#------------------------------------------ reset the sentence buffer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># just found the first token of the first sentence or any other sentence on that matter</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sentenceCounter</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentenceBuffer</span><span class="p">):</span>
+                    <span class="n">sentenceCounter</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1"># initiate sentence configuration for the new sentence</span>
+                    <span class="c1"># each sentence configuration is comprised of two elements</span>
+                    <span class="c1"># an integer for the starting line number</span>
+                    <span class="c1"># followed by a list of token types expected</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sentence_configuration</span><span class="p">[</span><span class="n">sentenceCounter</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">lineCounter</span><span class="p">,</span> <span class="n">offsetValue</span><span class="p">,</span> <span class="p">[]]</span>
+                <span class="n">sentenceBuffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="n">offsetValue</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span><span class="c1">#------------------------------------------------------------ close the file</span></div></div>
+<span class="c1"># CLASS:: END =================================================================</span>
+
+
+
+<span class="c1"># CLASS:: a class of sudo stream of CoNLL format sentences --------------------</span>
+<span class="c1"># =============================================================================</span>
+<div class="viewcode-block" id="CoNLLReader"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader">[docs]</a><span class="k">class</span> <span class="nc">CoNLLReader</span><span class="p">:</span> 
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">input_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">meta_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="c1"># debug input file name -------------------------------------</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;&gt;&gt;&gt; debug:: CoNLLReader :: __init__()&#39;</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s1">&#39;input file:: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+        <span class="c1"># $ end debug $ -------------------------------------------------------</span>
+       
+       <span class="c1"># load metadta --------------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">CoNLLMetaData</span><span class="p">(</span><span class="n">input_file</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span> 
+                                      <span class="n">meta_file</span><span class="o">=</span><span class="n">meta_file</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+        <span class="c1"># check for successful metadata loading -------------------------------</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span><span class="n">dClass</span><span class="o">=</span><span class="s1">&#39;CoNLLReader&#39;</span><span class="p">,</span>
+                               <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;__init__()&#39;</span><span class="p">,</span>
+                               <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;input file error&#39;</span><span class="p">,</span>
+                               <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;either invalid input file is found or failed to load metadata ... exiting to system&#39;</span><span class="p">,</span>
+                               <span class="n">dElement</span><span class="o">=</span><span class="n">input_file</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># exit to system -------------------------------------</span>
+        <span class="c1"># load file pointer of the input file ---------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_pointer</span> <span class="o">=</span> <span class="n">utfOpen</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span> <span class="o">=</span> <span class="mi">1</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span> <span class="o">=</span> <span class="p">[]</span>
+            
+<div class="viewcode-block" id="CoNLLReader.get_metadata"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader.get_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span></div>
+    
+<div class="viewcode-block" id="CoNLLReader.read_sentence"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader.read_sentence">[docs]</a>    <span class="k">def</span> <span class="nf">read_sentence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lineC</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get_sentence_configuration</span><span class="p">(</span><span class="n">sentence_number</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_pointer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="n">sentenceBuffer</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_pointer</span><span class="p">:</span>
+            <span class="c1"># either a sentence boundery or just an empty line ----------------</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+                <span class="c1"># just an empty line before any sentence is buffered ----------</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentenceBuffer</span><span class="p">):</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span> <span class="n">dType</span><span class="o">=</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span>
+                                        <span class="n">dClass</span><span class="o">=</span><span class="s1">&#39;CoNLLReader&#39;</span><span class="p">,</span>
+                                        <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;read_sentence()&#39;</span><span class="p">,</span>
+                                        <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;empty line in a sentence block&#39;</span><span class="p">,</span>
+                                        <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;sentence buffer empty ... empty line detected on line </span><span class="si">{}</span><span class="s1"> in sentence </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lineC</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span><span class="p">),</span>
+                                        <span class="n">dElement</span><span class="o">=</span><span class="n">sentenceBuffer</span><span class="p">)</span>
+                    <span class="k">continue</span> <span class="c1"># this is a precaution and should not happend ----</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sentenceBuffer</span><span class="p">)):</span><span class="c1">#-------------------------------  cycle through the sentence buffer</span>
+                    <span class="n">tokDef</span> <span class="o">=</span> <span class="n">sentenceBuffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">tokType</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">tokType</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">BASIC_TEN_SLOT_TYPE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">tokDef</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sentenceBuffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">lineC</span> <span class="o">+=</span> <span class="mi">1</span></div>
+    
+<div class="viewcode-block" id="CoNLLReader.get_current_sentence"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader.get_current_sentence">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_sentence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_sentence</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span></div>
+    
+<div class="viewcode-block" id="CoNLLReader.get_next_sentence"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader.get_next_sentence">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_sentence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get_total_sentence_count</span><span class="p">():</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span> <span class="n">dType</span><span class="o">=</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span>
+                                <span class="n">dClass</span><span class="o">=</span><span class="s1">&#39;CoNLLReader&#39;</span><span class="p">,</span>
+                                <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;get_next_sentence()&#39;</span><span class="p">,</span>
+                                <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;last sentence&#39;</span><span class="p">,</span>
+                                <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;EOF found ... current sentence is the last sentence&#39;</span><span class="p">,</span>
+                                <span class="n">dElement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_sentence</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span></div>
+    
+<div class="viewcode-block" id="CoNLLReader.get_previous_sentence"><a class="viewcode-back" href="../deskinparser_index.html#libconll.CoNLLReader.get_previous_sentence">[docs]</a>    <span class="k">def</span> <span class="nf">get_previous_sentence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">debugPrinter</span><span class="p">(</span> <span class="n">dType</span><span class="o">=</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span>
+                                <span class="n">thdClass</span><span class="o">=</span><span class="s1">&#39;CoNLLReader&#39;</span><span class="p">,</span>
+                                <span class="n">dDef</span><span class="o">=</span><span class="s1">&#39;get_previous_sentence()&#39;</span><span class="p">,</span>
+                                <span class="n">dDescript</span><span class="o">=</span><span class="s1">&#39;first sentence&#39;</span><span class="p">,</span>
+                                <span class="n">dMsg</span><span class="o">=</span><span class="s1">&#39;current sentence is e first sentence&#39;</span><span class="p">,</span>
+                                <span class="n">dElement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_sentence</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_sentence</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_buffer</span></div></div>
+
+<span class="c1"># CLASS:: END =================================================================</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../deskinparser_index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Deskin - Orange Labs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

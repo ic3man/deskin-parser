@@ -1,0 +1,158 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>libvector &#8212; Deskin-Parser 0.1b documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for libvector</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Jul 18 11:21:34 2017</span>
+
+<span class="sd">Deskin - Orange Labs - Lannion - France</span>
+
+<span class="sd">.. module:: libvector</span>
+<span class="sd">    :platform: UNIX/Linux</span>
+<span class="sd">    :synopsis: Base class to convert a sentence into a vector</span>
+
+<span class="sd">.. moduleauthor:: Munshi Asadullah &lt;munshi.asadullah@orange.com&gt;</span>
+
+<span class="sd">descript: to be done soon</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1">#import libconll</span>
+
+<span class="kn">import</span> <span class="nn">libutilities</span> <span class="k">as</span> <span class="nn">utils</span>
+
+<div class="viewcode-block" id="unitVectorConfiguration"><a class="viewcode-back" href="../deskinparser_index.html#libvector.unitVectorConfiguration">[docs]</a><span class="k">class</span> <span class="nc">unitVectorConfiguration</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; The class to be used to define the input vectors for the parsing task. </span>
+<span class="sd">        A default configuration will be initialized along with the API </span>
+<span class="sd">        providing options to configure as per necessary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">BASE_CONFIGURATION</span> <span class="o">=</span> <span class="p">{</span> <span class="n">utils</span><span class="o">.</span><span class="n">TOKEN</span>     <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">ONE_HOT_VECTOR</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">LEMMA</span>     <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">ONE_HOT_VECTOR</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">GPOS</span>      <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">ONE_HOT_VECTOR</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">POS</span>       <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">ONE_HOT_VECTOR</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">MORPH</span>     <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">ONE_HOT_VECTOR</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">RELATION</span>  <span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">SIMPLE_RELATION</span> <span class="p">}</span>
+    <span class="sd">&quot;&quot;&quot; The base configuration is the basis of how the unit vectors shall be</span>
+<span class="sd">        defined. The update to this configuration will occure, during the </span>
+<span class="sd">        execution of the constructor or afterward through the updates of other</span>
+<span class="sd">        models e.g. update of &quot;EXTERNAL_EMBEDDING&quot; will also update this</span>
+<span class="sd">        configuration model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">EXTERNAL_EMBEDDING</span> <span class="o">=</span> <span class="p">{</span> <span class="n">utils</span><span class="o">.</span><span class="n">TOKEN</span>     <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">LEMMA</span>     <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">GPOS</span>      <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">POS</span>       <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">MORPH</span>     <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">utils</span><span class="o">.</span><span class="n">RELATION</span>  <span class="p">:</span> <span class="kc">None</span> <span class="p">}</span>
+    <span class="sd">&quot;&quot;&quot; The external embedding model allowes the use of externer embeddings for</span>
+<span class="sd">        different elements of a unit vector. The changes for this model can be </span>
+<span class="sd">        made during the execution of the constructor or afterward through</span>
+<span class="sd">        update method ().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">reader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">external</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">relation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="c1"># DEF:: START ----------------------------------</span>
+        <span class="sd">&quot;&quot;&quot; The default constructor for defining unit vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">reader</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;error&#39;</span> <span class="c1"># TODO::</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">reader</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">external</span> <span class="o">=</span> <span class="n">external</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_external_embedding</span><span class="p">(</span><span class="n">external</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_configuration</span><span class="p">(</span><span class="n">relation</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="unitVectorConfiguration.validate_external_embedding"><a class="viewcode-back" href="../deskinparser_index.html#libvector.unitVectorConfiguration.validate_external_embedding">[docs]</a>    <span class="k">def</span> <span class="nf">validate_external_embedding</span><span class="p">(</span><span class="n">embedding_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1"># DEF:: START ------------------------------</span>
+        <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="unitVectorConfiguration.update_configuration"><a class="viewcode-back" href="../deskinparser_index.html#libvector.unitVectorConfiguration.update_configuration">[docs]</a>    <span class="k">def</span> <span class="nf">update_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+        
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../deskinparser_index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Deskin - Orange Labs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
