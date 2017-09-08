@@ -93,7 +93,7 @@ GPOS_DISTRIBUTION = 16
 POS_DISTRIBUTION = 17
 MORPHOLOGY_DISTRIBUTION = 18
 RELATION_DISTRIBUTION = 19
-""" Metadata data structure keys for json export and import
+""" Metadata data structure keys for json export and import (range 12-19)
 """
 #=====================
 
@@ -114,21 +114,15 @@ def generate_hash(source_file=None): # - DEF::START ---------------------------
         The source file cannot be None, has to be a String containing complete 
         path and must exist.
     """
-    try:
-        doesTheFileExist(file_path=source_file)
-    except exp.invalidFilePathException as e:
-        print >> sys.stderr, e
-        raise exp.invalidFilePathException(expID='000-FPE', 
-                                           expDetail='File path error detected', 
-                                           expValue=source_file)
-    # now we are ready to generate the hash value
-    hasher = hashlib.sha1()
-    with open(source_file, 'rb') as sFile:
-        buff = sFile.read(HASH_BLOCKSIZE)
-        while len(buff) > 0:
-            hasher.update(buff)
+    if doesTheFileExist(file_path=source_file):
+        # now we are ready to generate the hash value
+        hasher = hashlib.sha1()
+        with open(source_file, 'rb') as sFile:
             buff = sFile.read(HASH_BLOCKSIZE)
-    return hasher.hexdigest()
+            while len(buff) > 0:
+                hasher.update(buff)
+                buff = sFile.read(HASH_BLOCKSIZE)
+        return hasher.hexdigest()
 # ----------------------------------------------------------------- DEF:: END -
 
 def is_integer(test_val=None): # - DEF::START ---------------------------------
@@ -171,16 +165,16 @@ def doesTheFileExist(file_path=None): # - DEF::START --------------------------
     >>> doesTheFileExist(file_path='/my/own/path/fakedata.conll')
     True
     """
-    if file_path == None: # --------------------------------- Exception::000-0A
-        raise exp.noneFilePathError(expID='000-1A', expValue=file_path)
-    elif not isinstance(file_path, basestring): # ----------- Exception::000-0B
-        raise exp.nonStringFilePathError(expID='000-1B', expValue=file_path)
-    elif not len(file_path): # ------------------------------ Exception::000-0C
-        raise exp.zeroLengthStringPathError(expID='000-1C', expValue=file_path)
-    elif not os.path.exists(file_path): # ------------------- Exception::000-0D
-        raise exp.pathDoesNotExistError(expID='000-1D', expValue=file_path)
-    elif os.path.isdir(file_path): # ------------------------ Exception::000-0E
-        raise exp.pathIsDirectoryException(expID='000-1E', expValue=file_path)
+    if file_path == None:
+        raise exp.noneValueError('None was passes as file path')
+    elif not isinstance(file_path, basestring):
+        raise TypeError('File path is not a string.\nFound: <{}>'.format(file_path))
+    elif not len(file_path):
+        raise exp.zeroLengthValueError('Empty string was passes as file path')
+    elif not os.path.exists(file_path):
+        raise exp.invalidPathIOError('Path does not exist.\nFound: <{}>'.format(file_path))
+    elif os.path.isdir(file_path):
+        raise exp.pathTypeIOError('Path is not a file\nFound: <{}>'.format(file_path))
     return True
 # ----------------------------------------------------------------- DEF:: END -
 

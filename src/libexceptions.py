@@ -9,8 +9,35 @@
 
 .. moduleauthor:: Munshi Asadullah <munshi.asadullah@orange.com>
 
-*The user-defined exceptions are put together in this libreary.*
+*The user-defined exceptions are put together in this libreary. The names are 
+quite expainatory.*
 """
+
+class noneValueError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+
+class zeroLengthValueError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+
+class unequalValueError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+
+class invalidPathIOError(IOError):
+    def __init__(self, *args, **kwargs):
+        IOError.__init__(self, *args, **kwargs)
+
+class pathTypeIOError(IOError):
+    def __init__(self, *args, **kwargs):
+        IOError.__init__(self, *args, **kwargs)
+
+class notAllKeyError(KeyError):
+    def __init__(self, *args, **kwargs):
+        KeyError.__init__(self, *args, **kwargs)
+
+'''
 class dpGenericException(Exception):# - CLASS::START --------------------------
     """ *The base exception class for the deskinparser API. This can replace
     the requirement of an error or warning message generator and make the error
@@ -40,6 +67,46 @@ class dpGenericException(Exception):# - CLASS::START --------------------------
     
     def get_value(self):# - DEF::START ----------------------------------------
         return self.value
+#==============================================================================
+
+class invalidTokenException(dpGenericException):# - CLASS::START -----------
+    """ *The base class for the exceptions regarding Token error. It could be
+    invalid token type or invalid value for a token*
+    
+    :param expID: Unique ID associated with an exception.
+    :type expID: int or float or str
+    :param str expDetail: Description of the exception message.
+    :param object expValue: The value that causes the exception.
+    """
+    def __init__(self, expID=0, expDetail=None, expValue=None, line=-1): # - DEF::START 
+        self.line = line
+        super(invalidTokeException, self).__init__(expType='ERROR', 
+            expID=expID, expTitle='Invalid token', expDetail=expDetail, 
+            expValue=expValue)
+    
+    def __str__(self): # - DEF::START -----------------------------------------
+        return super(invalidTokeException, self).__str__ + 'Check Line {}\n'.format(self.line)
+        
+#==============================================================================
+
+class invalidTokeException(dpGenericException):# - CLASS::START -----------
+    """ *The base class for the exceptions regarding Token error. It could be
+    invalid token type or invalid value for a token*
+    
+    :param expID: Unique ID associated with an exception.
+    :type expID: int or float or str
+    :param str expDetail: Description of the exception message.
+    :param object expValue: The value that causes the exception.
+    """
+    def __init__(self, expID=0, expDetail=None, expValue=None, line=-1): # - DEF::START 
+        self.line = line
+        super(invalidTokeException, self).__init__(expType='ERROR', 
+            expID=expID, expTitle='Invalid token', expDetail=expDetail, 
+            expValue=expValue)
+    
+    def __str__(self): # - DEF::START -----------------------------------------
+        return super(invalidTokeException, self).__str__ + 'Check Line {}\n'.format(self.line)
+        
 #==============================================================================
 
 class invalidFilePathException(dpGenericException):# - CLASS::START -----------
@@ -127,4 +194,4 @@ class pathIsDirectoryException(invalidFilePathException):# - CLASS::START -----
         super(pathIsDirectoryException, self).__init__(expID=expID, 
             expDetail='File path is a directory', expValue=expValue)
 #==============================================================================
-
+'''

@@ -16,6 +16,7 @@ The Primary use is as a sentence stream for quick travarsal of the content.*
 
 import os
 import sys
+import errno
 
 import json
 
@@ -61,13 +62,7 @@ class CoNLLMetaData:
     """
     def __init__(self, input_file=None, meta_file=None): # DEF:: START --------
         # check input file path -----------------------------------------------
-        try:
-            utils.doesTheFileExist(file_path=input_file)
-        except exp.invalidFilePathException as e:
-            print >> sys.stderr, e
-            raise exp.invalidFilePathException(expID='001-INPUT', 
-                                               expDetail='Input file path error detected.', 
-                                               expValue=input_file)
+        utils.doesTheFileExist(file_path=input_file)        
         # split the file path and the file name -------------------------------
         head, tail = os.path.split(input_file)
         # class variables -----------------------------------------------------
@@ -84,17 +79,23 @@ class CoNLLMetaData:
         # slelct the metadata file ... either the provided path or local path -        
         try:
             utils.doesTheFileExist(file_path=meta_file)              
-        except (exp.noneFilePathError, 
-                exp.nonStringFilePathError, 
-                exp.zeroLengthStringPathError, 
-                exp.pathDoesNotExistError):
+        except (TypeError, ValueError, exp.invalidPathIOErro):
             meta_file = self.file_location + '/' + self.file_name + utils.META_EXTENSION
-        except exp.pathIsDirectoryException:
+        except exp.pathTypeIOError:
             meta_file = meta_file + '/' + self.file_name + utils.META_EXTENSION
         # analyze or load metadata --------------------------------------------
-        if not self.load_metadate(meta_file=meta_file, current_hash=utils.generate_hash(source_file=input_file)):
+        try:
+            self.load_metadate(meta_file=meta_file, current_hash=utils.generate_hash(source_file=input_file))
+        except Exception as e:
+            print >> sys.stderr, 'WARNING: Failed loading metadata file ... running analysis.'
+            print >> sys.stderr, e
+        else:
             self.analyze(in_file=input_file)
-            self.save_metadata(meta_file=meta_file)
+            try:
+                self.save_metadata(meta_file=meta_file)
+            except Exception as e:
+                print >> sys.stderr, 'WARNING: Metadata file not saved... re-analysis will be needed next time.'
+                print >> sys.stderr, e
 
     def get_sentence_count(self):
         """ *Returns the number of sentences in the file.*
@@ -147,44 +148,136 @@ class CoNLLMetaData:
         return self.token_distribution_map
         
     def get_lemma_count(self):
+        """ *Returns the total number of unique lemmas in the input file.*
+        
+        :return: number of unique lemmas.
+        :rtype: int
+        """
         return len(self.lemma_distribution_map)
     
     def get_lemma_list(self):
+        """ *Returns the list of unique lemmas in the input file.*
+        
+        :return: list of unique lemmas.
+        :rtype: list[str]
+        """
         return self.lemma_distribution_map.keys()
         
     def get_lemma_distribution(self):
+        """ *Map of token distribution i.e. map of lemmas to its frequency.*
+        
+        :return: map of lemmas to its frequency.
+        :rtype: map[str, int]
+        """
         return self.lemma_distribution_map
     
     def get_generic_pos_count(self):
+        """ *Returns the total number of unique generic PoS in the input file.*
+        
+        :return: number of unique generic PoS.
+        :rtype: int
+        """
         return len(self.gpos_distribution_map)
     
     def get_generic_pos_list(self):
+        """ *Returns the list of unique generic PoS in the input file.*
+        
+        :return: list of unique generic PoS.
+        :rtype: list[str]
+        """
         return self.gpos_distribution_map.keys()
         
     def get_generic_pos_distribution(self):
+        """ *Map of token distribution i.e. map of generic PoS to its frequency.*
+        
+        :return: map of generic PoS to its frequency.
+        :rtype: map[str, int]
+        """
         return self.gpos_distribution_map
     
     def get_pos_count(self):
+        """ *Returns the total number of unique fine-grained PoS in the input file.*
+        
+        :return: number of unique fine-grained PoS.
+        :rtype: int
+        """
         return len(self.pos_distribution_map)
     
     def get_pos_list(self):
+        """ *Returns the list of unique fine-grained PoS in the input file.*
+        
+        :return: list of unique fine-grained PoS.
+        :rtype: list[str]
+        """
         return self.pos_distribution_map.keys()
         
     def get_pos_distribution(self):
+        """ *Map of token distribution i.e. map of fine-grained PoS to its frequency.*
+        
+        :return: map of fine-grained PoS to its frequency.
+        :rtype: map[str, int]
+        """
         return self.pos_distribution_map
     
     def get_relation_count(self):
+        """ *Returns the total number of unique relation types in the input file.*
+        
+        :return: number of unique relation types.
+        :rtype: int
+        """
         return len(self.relation_distribution_map)
     
+    def get_relation_list(self):
+        """ *Returns the list of unique relation types in the input file.*
+        
+        :return: list of unique relation types.
+        :rtype: list[str]
+        """
+        return self.relation_distribution_map.keys()
+        
     def get_relation_distribution(self):
+        """ *Returns the map of token distribution i.e. map of relation types 
+        to its frequency.*
+        
+        :return: map of relation types to its frequency.
+        :rtype: map[str, int]
+        """
         return self.relation_distribution_map
     
     def get_morphological_class_value_map(self):
+        """ *Returns the map of morphological class to its possible values.*
+        
+        :return: map of morphological classes to values.
+        :rtype: dict[str, list]
+        """
         return {k:v.keys() for k,v in self.morphology_distribution_map.items()}
     
-    def detect_token_type(self, tok=None):
-        if tok == None: # empty token is a no no ------------------------------
-            return None
+    def detect_token_type(self, tok=None, line=-1):
+        """ *Detects and returns the type of token as defined in the utility 
+        module.* 
+        
+        :param str tok: The token definition for detection.
+        :return: token type
+        :raise ValueError: If the token definition is empty.
+        :raise TypeError: If token definition is not a string.
+        :raise LookupError: If invalid token type is detected.
+        
+        .. Note::
+            The token definitions types are defined in the utility module. 
+            Additional types can be introduced and the if-else block is needed 
+            to be updated to accomodate any new type.
+        """
+        # empty or non string token is a no no ------------------------------
+        if tok == None or not isinstance(tok, basestring):
+            raise exp.invalidTokenException(expID='010-TOKEN', 
+                                           expDetail='Invalid data type for token.', 
+                                           expValue=tok, 
+                                           line=line)
+        elif not len(tok):
+            raise exp.invalidTokenException(expID='011-TOKEN', 
+                                           expDetail='Empty string for token.', 
+                                           expValue=tok, 
+                                           line=line)
         # in the presence of a valid token we can start figuring out the type of the token definition
         tokFragment = [e.strip() for e in tok.strip().split()]
         if len(tokFragment) == 10: # the standard 10 slot CoNLL format
@@ -193,12 +286,33 @@ class CoNLLMetaData:
             compound_parts = tokFragment[0].strip().split('-')
             if len(compound_parts) > 1 and all([utils.is_integer(e) for e in compound_parts]):
                 return utils.COMPOUND_DEFINITION
+        else:
+            raise exp.invalidTokenException(expID='010-TOKEN', 
+                                           expDetail='Invalid token type found.', 
+                                           expValue=tok, 
+                                           line=line)
         # ================================================================================================
         # TODO: update this if...else sequence to make changes to the token types or add a totally new one
         # ================================================================================================
         return None
     
     def save_metadata(self, meta_file=None):
+        """ *Save the extracted metadata into the provided metadata file.*
+        
+        :param str meta_file: The metafile path to save the data.
+        :return: Nothing
+        :raise IOError: By `file access <https://docs.python.org/2/library/functions.html#open>`_.
+        :raise ValueError: By `unicode file access <https://docs.python.org/2/library/codecs.html#codecs.open>`_.
+        :raise ValueError: By `JSON dump <https://docs.python.org/2/library/json.html#json.dump>`_.
+        :raise OverflowError: By `JSON dump <https://docs.python.org/2/library/json.html#json.dump>`_.
+        :raise TypeError: By `JSON dump <https://docs.python.org/2/library/json.html#json.dump>`_.
+        
+        .. Note::
+            The default value of **meta_file** is a sheer formality because of
+            the structure of the class. This function should only be called by 
+            the initialization method and that shall raise exceptions if there 
+            is some sort of anomaly in the file name or in the file path.
+        """
         json_data = {utils.FILE_HASH_VALUE:         self.file_hash_value,
                      utils.SENTENCE_CONFIGURATION:  self.sentence_configuration,
                      utils.TOKEN_DISTRIBUTION:      self.token_distribution_map,
@@ -208,62 +322,82 @@ class CoNLLMetaData:
                      utils.MORPHOLOGY_DISTRIBUTION: self.morphology_distribution_map,
                      utils.RELATION_DISTRIBUTION:   self.relation_distribution_map }
         with utfOpen(meta_file, mode='w', encoding='UTF-8') as fp:
-           json.dump(json_data, fp)
+            json.dump(json_data, fp)
         
     def load_metadate(self, meta_file=None, current_hash=-1):
-        json_data = None
-        try:
-            if utils.doesTheFileExist(file_path=meta_file):
-                # check if the metadata file is empty or not
-                if os.stat(meta_file).st_size == 0:
-                    return False
-            # now load the file
-            fp = utfOpen(meta_file, mode='r', encoding='UTF-8')
-            # loading metadata
-            json_data = json.load(fp)
-            # we are done with file
-            fp.close()
-        except:
-            return False
+        """ *Load meta data to class variables from the provided file.*
+        
+        :param str meta_file: The metafile path.
+        :param str current_hash: Hash value to be compared for consistency.
+        :return: Nothing
+        :raise IOError: By `file access <https://docs.python.org/2/library/functions.html#open>`_.
+        :raise ValueError: By `unicode file access <https://docs.python.org/2/library/codecs.html#codecs.open>`_.
+        :raise EOFError: If metafile is empty.
+        :raise TypeError: If loaded data is not a dict.
+        :raise KeyError: If loaded data does not contain all the JSON data keys.
+        :raise LookupError: If current hash does not match the saved hash value.
+        """
+        if utils.doesTheFileExist(file_path=meta_file):
+            # check if the metadata file is empty or not
+            if os.stat(meta_file).st_size == 0:
+                raise exp.zeroLengthValueError('The metafile is empty')
+        # now load the file
+        fp = utfOpen(meta_file, mode='r', encoding='UTF-8')
+        # loading metadata
+        json_data = json.load(fp)
+        # we are done with file
+        fp.close()
         # check if invalid data type is loaded
         if not isinstance(json_data, dict):
-            return False
+            raise TypeError('JSON data must be a dict.\nFound: <{}>'.format(type(json_data)))
         # check if all the keys are present
-        elif set(json_data.keys()) != set(utils.META_KEYS):
-            return False       
+        elif set(json_data.keys()) != set(range(utils.FILE_HASH_VALUE, utils.RELATION_DISTRIBUTION+1)):
+            raise exp.notAllKeyError('Not all the JSON data keys are present.')
         # check if the hash value from the meta file matches the recalculated
         # hash value indicating changes in the original file ------------------
         elif json_data.get(utils.FILE_HASH_VALUE) != current_hash:
-            return False
+            raise exp.unequalValueError('The current hash of the input file does not match the metafile data.)
         else:
-            try:
-                self.file_hash_value = json_data.get(utils.FILE_HASH_VALUE)
-                self.sentence_configuration = json_data.get(utils.SENTENCE_CONFIGURATION)
-                self.token_distribution_map = json_data.get(utils.TOKEN_DISTRIBUTION)
-                self.lemma_distribution_map = json_data.get(utils.LEMMA_DISTRIBUTION)
-                self.gpos_distribution_map = json_data.get(utils.GPOS_DISTRIBUTION)
-                self.pos_distribution_map = json_data.get(utils.POS_DISTRIBUTION)
-                self.morphology_distribution_map = json_data.get(utils.MORPHOLOGY_DISTRIBUTION)
-                self.relation_distribution_map = json_data.get(utils.RELATION_DISTRIBUTION)
-            except KeyError:
-                return False
-        return True
+            self.file_hash_value = json_data.get(utils.FILE_HASH_VALUE)
+            self.sentence_configuration = json_data.get(utils.SENTENCE_CONFIGURATION)
+            self.token_distribution_map = json_data.get(utils.TOKEN_DISTRIBUTION)
+            self.lemma_distribution_map = json_data.get(utils.LEMMA_DISTRIBUTION)
+            self.gpos_distribution_map = json_data.get(utils.GPOS_DISTRIBUTION)
+            self.pos_distribution_map = json_data.get(utils.POS_DISTRIBUTION)
+            self.morphology_distribution_map = json_data.get(utils.MORPHOLOGY_DISTRIBUTION)
+            self.relation_distribution_map = json_data.get(utils.RELATION_DISTRIBUTION)
         
-    def update_morphology_map(self, morph_string=None, debug=False):
-        if debug: # debug input file name ---------------------
-            print >> sys.stderr, '>>> debug:: CoNLLMetaData :: update_morphology_map()'
-            print >> sys.stderr, 'morph (value):: {}'.format(morph_string)
-            print >> sys.stderr, 'morph (type):: {}\n'.format(type(morph_string))
-        # $ end debug $ -------------------------------------------------------
-        if morph_string == '_' or morph_string == None or not len(morph_string.strip()):
+    def update_morphology_map(self, morph_string=None):
+        """ *Updates the class variable for keeping the map of morphological 
+        classes (e.g. gender, number etc.) to the map of possible values (e.g. 
+        masculin, feminin etc. for gender) to their respective frequency.*
+        
+        :param str morph_string: The morphological information string.
+        :return: map of maps of morphological class to value to frequency.
+        :rtype: dict[str, dict[str, int]]
+        """
+        if morph_string == None or morph_string == '_' or not len(morph_string.strip()):
             return
         for g in [e.strip().split('=') for e in morph_string.strip().split('|')]:
             self.morphology_distribution_map[g[0]] = self.morphology_distribution_map.get(g[0], {})
             self.morphology_distribution_map[g[0]][g[1]] = self.morphology_distribution_map[g[0]].get(g[1], 0) + 1
     
-    def analyze(self, in_file=None, debug=False):
+    def analyze(self, in_file=None):
+        """ *Load and analyze the input file to generate metadata and update 
+        class level variables.*
+        
+        :param str in_file: The CoNLL format file to be analyzed.
+        :return: Nothing.
+        :raise IOError: If hash value generation for the input file fails.
+        :raise IOError: By `file access <https://docs.python.org/2/library/functions.html#open>`_.
+        :raise ValueError: By `unicode file access <https://docs.python.org/2/library/codecs.html#codecs.open>`_.
+        """
         # generate hash value -------------------------------------------------
-        self.file_hash_value = utils.generate_hash(in_file)
+        try:
+            self.file_hash_value = utils.generate_hash(in_file)
+        except exp.invalidFilePathException as e:
+            print >> sys.stderr, e
+            raise IOError            
         # open file for processing --------------------------------------------
         fp = utfOpen(in_file, mode='r', encoding='UTF-8')
         # initiate local variables --------------------------------------------
@@ -278,10 +412,16 @@ class CoNLLMetaData:
                 if not len(sentenceBuffer): # --------------------------------- just an empty line before any sentence is buffered
                     offsetValue = fp.tell()
                     continue # let's go back to work --------------------------
-                for tokDef in sentenceBuffer: # ------------------------------- cycle through the sentence buffer
-                    tokType = self.detect_token_type(tokDef) # ---------------- detect the token type
+                while len(sentenceBuffer): # ------------------------------- cycle through the sentence buffer
+                    tokDef = sentenceBuffer.pop(0)
+                    try:
+                        # ------------------------------- detect the token type
+                        tokType = self.detect_token_type(tok=tokDef, line=lineCounter-len(sentenceBuffer)+1)
+                    except exp.invalidTokenException as e:
+                        print >> sys.stderr, e
+                        sys.exit(errno.EPERM)
                     if tokType == utils.BASIC_TEN_SLOT_TYPE: # ------------ actions to be taken if a basic 10 slot line is found
-                        tid, sur, lem, gpos, pos, morph, head, rel, idc0, idc1 = [e.strip() for e in tokDef.strip().split()]
+                        tid, sur, lem, gpos, pos, morph, head, rel, idc0, idc1 = [le.strip() for le in tokDef.strip().split()]
                         # check if token ID (tid) is valid --------------------
                         if not len(tid) or tid == '_' or not utils.is_integer(test_val=tid):
                             errLine = lineCounter - len(sentenceBuffer) + sentenceBuffer.index(tokDef) + 1
@@ -306,12 +446,6 @@ class CoNLLMetaData:
                         self.sentence_configuration[sentenceCounter][-1].append([tid, tokType])
                     elif tokType == utils.COMPOUND_DEFINITION:
                         self.sentence_configuration[sentenceCounter][-1].append([tid, tokType])
-                    else:
-                        utils.debugPrinter(dClass='CoNLLMetaData',
-                                           dDef='analyze()',
-                                           dDescript='token type error',
-                                           dMsg='invalid token type detected on line {} of {}'.format(lineCounter, self.get_file_name()),
-                                           dElement=tokDef)
                 sentenceBuffer = [] #------------------------------------------ reset the sentence buffer
             else:
                 # just found the first token of the first sentence or any other sentence on that matter

@@ -147,7 +147,7 @@ allows the accomodation of new entitis to be incorporated in the vector.</p>
 <dl class="data">
 <dt>
 <code class="descclassname">libutilities.</code><code class="descname">RELATION_DISTRIBUTION</code><em class="property"> = 19</em></dt>
-<dd><p>Metadata data structure keys for json export and import</p>
+<dd><p>Metadata data structure keys for json export and import (range 12-19)</p>
 </dd></dl>
 
 <dl class="data">
@@ -260,258 +260,6 @@ will be returned.</p>
 </div>
 <div class="section" id="module-deskinparser-libconll">
 <h4><strong># Module :: deskinparser.libconll</strong>:<a class="headerlink" href="#module-deskinparser-libconll" title="Permalink to this headline">¶</a></h4>
-<p>Created on Thu Jun 22 16:50:26 2017</p>
-<p>Deskin - Orange Labs - Lannion - France</p>
-<span class="target" id="module-libconll"></span><p><em>Module containing classes to process a CoNLL format text file for further use.
-The Primary use is as a sentence stream for quick travarsal of the content.</em></p>
-<dl class="class">
-<dt>
-<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLMetaData</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em><span class="sig-paren">)</span></dt>
-<dd><p><em>The class that shall provide the data structure and the supporting 
-methods to store, manipulate and access metadata extracted from a file in 
-CoNLL format. CoNLL metadata initialization method will allow us to make 
-decisions regarding metadata analysis, loading and saving.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_file</strong> (<em>str</em>) – The input file in CoNLL format</li>
-<li><strong>meta_file</strong> (<em>str</em>) – The metadata file associated with the input_file</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>invalidFilePathException</strong> – If the input file path is invalid.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>The decisions making process of loading metadata or generate 
-and eventually saving can be decribed by the following algorithm,</p>
-<ul class="last simple">
-<li>If the meatfile exists <em>i.e.</em> a valid path is provides and the file         exists, we shall check if there is any thing in the file <em>i.e.</em> the         length of the file is not zero.</li>
-<li>Now we shall try to open the file.</li>
-<li>Once opened we shall check if all the data keys are present.</li>
-<li>If so we shall retrieve the input hash value and compare it with the         calculated input file hash value to determine if the input file is the         actual input file associeated with the metadata.</li>
-<li>Failiure at any of the previous steps will invoce the analysis method         thus genarating the metadata ans saving it.</li>
-<li>If metadata file name provided exist the new metadata will be saved         by rewriting the file.</li>
-<li>Otherwise if the directory path of the metafile name exist or the         metfile name is an existing directory itself, the new metadata will be         saved in that directory.</li>
-<li>For any other case the metafile will be generated in the same path         where the input file is.</li>
-</ul>
-</div>
-<dl class="method">
-<dt>
-<code class="descname">analyze</code><span class="sig-paren">(</span><em>in_file=None</em>, <em>debug=False</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">detect_token_type</code><span class="sig-paren">(</span><em>tok=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_generic_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_generic_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_generic_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_lemma_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_lemma_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_lemma_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_morphological_class_value_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_relation_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_relation_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_sentence_configuration</code><span class="sig-paren">(</span><em>sentence_number=None</em><span class="sig-paren">)</span></dt>
-<dd><p><em>Returns the sentence configurations for the input file either all 
-the sentences or for a specific sentence. The formal way to get all 
-configurations is to call the fuction without any arguments.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sentence_number</strong> (<em>int</em>) – The specific sentence configuaration to return.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">One or all the sentence configurations.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list(list(str, int)) or dict(int, list(list(str, int)))</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Sentence configuration is a list of tuples … token ID as found 
-followed by the type of token that was found.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_sentence_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p><em>Returns the number of sentences in the file.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">Nothing</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The number of sentencs.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_token_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p><em>Returns the total number of unique tokens in the input file.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique tokens.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_token_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p><em>Map of token distribution i.e. map of token to its frequency.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of token to its frequency.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_token_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p><em>Returns the list of unique tokens in the input file.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique tokens.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">load_metadate</code><span class="sig-paren">(</span><em>meta_file=None</em>, <em>current_hash=-1</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">save_metadata</code><span class="sig-paren">(</span><em>meta_file=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">update_morphology_map</code><span class="sig-paren">(</span><em>morph_string=None</em>, <em>debug=False</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt>
-<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLReader</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em>, <em>debug=False</em><span class="sig-paren">)</span></dt>
-<dd><dl class="method">
-<dt>
-<code class="descname">get_current_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_next_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_previous_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">read_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="module-deskinparser-libvector">
 <h4><strong># Module :: deskinparser.libvector</strong>:<a class="headerlink" href="#module-deskinparser-libvector" title="Permalink to this headline">¶</a></h4>
@@ -562,38 +310,49 @@ update method ().</p>
 <li>Created on Wed Aug 23 13:51:46 2017</li>
 <li>Deskin - Orange Labs - Lannion - France</li>
 </ul>
-<span class="target" id="module-libexceptions"></span><p><em>The user-defined exceptions are put together in this libreary.</em></p>
+<span class="target" id="module-libexceptions"></span><p><em>The user-defined exceptions are put together in this libreary. The names are 
+quite expainatory.</em></p>
 <dl class="exception">
 <dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">dpGenericException</code><span class="sig-paren">(</span><em>expType='GENERIC'</em>, <em>expID=-1</em>, <em>expTitle='generic debug event'</em>, <em>expDetail='generic debug event - details unknown'</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
-<p><em>The base exception class for the deskinparser API. This can replace
-the requirement of an error or warning message generator and make the error
-tracking easier. Mostly going to be used as the base class for specific
-exceptions.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expType</strong> (<em>str</em>) – The type of exception e.g. ERROR, WARNING etc..</li>
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expTitle</strong> (<em>str</em>) – Title of the exception message.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">invalidPathIOError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.IOError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<code class="descname">errno</code></dt>
+<dd><p>exception errno</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">filename</code></dt>
+<dd><p>exception filename</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">strerror</code></dt>
+<dd><p>exception strerror</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">noneValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -605,32 +364,11 @@ exceptions.</em></p>
 
 <dl class="exception">
 <dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">invalidFilePathException</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expDetail=None</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.dpGenericException</span></code></p>
-<p><em>The base class for the exceptions regarding file acces issues concerning
-path value or path errors. This is also the root exception raised for file
-access issues</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">notAllKeyError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.KeyError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -642,30 +380,45 @@ access issues</em></p>
 
 <dl class="exception">
 <dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">nonStringFilePathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
-<p><em>The exception class is raised if the provided file path is not a String</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">pathTypeIOError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.IOError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<code class="descname">errno</code></dt>
+<dd><p>exception errno</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">filename</code></dt>
+<dd><p>exception filename</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">strerror</code></dt>
+<dd><p>exception strerror</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">unequalValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -677,139 +430,11 @@ access issues</em></p>
 
 <dl class="exception">
 <dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">noneFilePathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
-<p><em>The exception class is raised if the file path provided having a value
-None.</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">zeroLengthValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="descname">message</code></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="exception">
-<dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">pathDoesNotExistError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
-<p><em>The exception class is raised if the provided file path is not a path
-at all … nither file nor a directory</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt>
-<code class="descname">args</code></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="descname">message</code></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="exception">
-<dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">pathIsDirectoryException</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
-<p><em>The exception class is raised if the provided file path is a  directory
-rather than a file</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt>
-<code class="descname">args</code></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="descname">message</code></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="exception">
-<dt>
-<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">zeroLengthStringPathError</code><span class="sig-paren">(</span><em>expID=0</em>, <em>expValue=None</em><span class="sig-paren">)</span></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libexceptions.invalidFilePathException</span></code></p>
-<p><em>The exception class is raised if the provided file path is a zero 
-length String</em></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expID</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em>) – Unique ID associated with an exception.</li>
-<li><strong>expDetail</strong> (<em>str</em>) – Description of the exception message.</li>
-<li><strong>expValue</strong> (<em>object</em>) – The value that causes the exception.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt>
-<code class="descname">args</code></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
