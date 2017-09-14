@@ -175,7 +175,7 @@ actually exists.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file_path</strong> (<em>str</em>) – The full path of the file to be tested.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True or False.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">bool</p>
@@ -186,6 +186,7 @@ actually exists.</p>
 <li><strong>nonStringFilePathError</strong> – If the the file path is not a String.</li>
 <li><strong>zeroLengthStringPathError</strong> – If the the file path is a zero length String.</li>
 <li><strong>pathDoesNotExistError</strong> – If file path doesnot exist.</li>
+<li><strong>newFileIOError</strong> – The directory exists but the file does not.</li>
 <li><strong>pathIsDirectoryException</strong> – If the path is a directory.</li>
 </ul>
 </td>
@@ -214,7 +215,7 @@ time to test consistency.</p>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>invalidFilePathException</strong> – Source file path is not valid.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>Exception</strong> – Source file path is not valid.</td>
 </tr>
 </tbody>
 </table>
@@ -260,12 +261,634 @@ will be returned.</p>
 </div>
 <div class="section" id="module-deskinparser-libconll">
 <h4><strong># Module :: deskinparser.libconll</strong>:<a class="headerlink" href="#module-deskinparser-libconll" title="Permalink to this headline">¶</a></h4>
+<p>Created on Thu Jun 22 16:50:26 2017</p>
+<p>Deskin - Orange Labs - Lannion - France</p>
+<span class="target" id="module-libconll"></span><p><em>Module containing classes to process a CoNLL format text file for further use.
+The Primary use is as a sentence stream for quick travarsal of the content.</em></p>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLMetaData</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>The class that shall provide the data structure and the supporting 
+methods to store, manipulate and access metadata extracted from a file in 
+CoNLL format. CoNLL metadata initialization method will allow us to make 
+decisions regarding metadata analysis, loading and saving.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_file</strong> (<em>str</em>) – The input file in CoNLL format</li>
+<li><strong>meta_file</strong> (<em>str</em>) – The metadata file associated with the input_file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>invalidFilePathException</strong> – If the input file path is invalid.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The decisions making process of loading metadata or generate 
+and eventually saving can be decribed by the following algorithm,</p>
+<ul class="last simple">
+<li>If the meatfile exists <em>i.e.</em> a valid path is provides and the file         exists, we shall check if there is any thing in the file <em>i.e.</em> the         length of the file is not zero.</li>
+<li>Now we shall try to open the file.</li>
+<li>Once opened we shall check if all the data keys are present.</li>
+<li>If so we shall retrieve the input hash value and compare it with the         calculated input file hash value to determine if the input file is the         actual input file associeated with the metadata.</li>
+<li>Failiure at any of the previous steps will invoce the analysis method         thus genarating the metadata ans saving it.</li>
+<li>If metadata file name provided exist the new metadata will be saved         by rewriting the file.</li>
+<li>Otherwise if the directory path of the metafile name exist or the         metfile name is an existing directory itself, the new metadata will be         saved in that directory.</li>
+<li>For any other case the metafile will be generated in the same path         where the input file is.</li>
+</ul>
+</div>
+<dl class="method">
+<dt>
+<code class="descname">analyze</code><span class="sig-paren">(</span><em>in_file=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Load and analyze the input file to generate metadata and update 
+class level variables.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>in_file</strong> (<em>str</em>) – The CoNLL format file to be analyzed.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>IOError</strong> – If hash value generation for the input file fails.</li>
+<li><strong>IOError</strong> – By <a class="reference external" href="https://docs.python.org/2/library/functions.html#open">file access</a>.</li>
+<li><strong>ValueError</strong> – By <a class="reference external" href="https://docs.python.org/2/library/codecs.html#codecs.open">unicode file access</a>.</li>
+<li><strong>ValueError</strong> – If invalid, non integer token ID is found.</li>
+<li><strong>TypeError</strong> – If invalidtoken type is found.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">detect_token_type</code><span class="sig-paren">(</span><em>tok=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Detects and returns the type of token as defined in the utility 
+module.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tok</strong> (<em>str</em>) – The token definition for detection.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">token type defined in <em>libutilities</em> module.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>TypeError</strong> – If token definition is not a string.</li>
+<li><strong>zeroLengthValueError</strong> – If the token definition is empty.</li>
+<li><strong>undefinedTypeError</strong> – If undefined token type is detected.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The token definitions types are defined in the utility module. 
+Additional types can be introduced and the if-else block is needed 
+to be updated to accomodate any new type.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique generic PoS in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique generic PoS.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Map of token distribution i.e. map of generic PoS to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of generic PoS to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_generic_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the list of unique generic PoS in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique generic PoS.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique lemmas in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique lemmas.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Map of token distribution i.e. map of lemmas to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of lemmas to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_lemma_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the list of unique lemmas in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique lemmas.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_morphological_class_value_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the map of morphological class to its possible values.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of morphological classes to values.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict[str, list]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique fine-grained PoS in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique fine-grained PoS.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Map of token distribution i.e. map of fine-grained PoS to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of fine-grained PoS to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_pos_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the list of unique fine-grained PoS in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique fine-grained PoS.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique relation types in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique relation types.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the map of token distribution i.e. map of relation types 
+to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of relation types to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the list of unique relation types in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique relation types.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_sentence_configuration</code><span class="sig-paren">(</span><em>sentence_number=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the sentence configurations for the input file either all 
+the sentences or for a specific sentence. The formal way to get all 
+configurations is to call the fuction without any arguments.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sentence_number</strong> (<em>int</em>) – The specific sentence configuaration to return.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">One or all the sentence configurations.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list(list(str, int)) or dict(int, list(list(str, int)))</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>KeyError</strong> – If the <strong>sentence_number</strong> does not exist.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Sentence configuration is a list of tuples … token ID as found 
+followed by the type of token that was found.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_sentence_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the number of sentences in the file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">Nothing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The number of sentencs.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_count</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique tokens in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of unique tokens.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Map of token distribution i.e. map of token to its frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">map of token to its frequency.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">map[str, int]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_token_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the list of unique tokens in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of unique tokens.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list[str]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">load_metadate</code><span class="sig-paren">(</span><em>meta_file=None</em>, <em>current_hash=-1</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Load meta data to class variables from the provided file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>meta_file</strong> (<em>str</em>) – The metafile path.</li>
+<li><strong>current_hash</strong> (<em>str</em>) – Hash value to be compared for consistency.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>IOError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/functions.html#open">file access</a>.</p>
+</li>
+<li><strong>ValueError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/codecs.html#codecs.open">unicode file access</a>.</p>
+</li>
+<li><strong>zeroLengthValueError</strong> – If metafile is empty.</li>
+<li><strong>TypeError</strong> – If loaded data is not a dict.</li>
+<li><strong>notAllKeyError</strong> – If loaded data does not contain all the JSON data keys.</li>
+<li><strong>unequalValueError</strong> – If current hash does not match the saved hash value.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">save_metadata</code><span class="sig-paren">(</span><em>meta_file=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Save the extracted metadata into the provided metadata file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>meta_file</strong> (<em>str</em>) – The metafile path to save the data.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>IOError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/functions.html#open">file access</a>.</p>
+</li>
+<li><strong>ValueError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/codecs.html#codecs.open">unicode file access</a>.</p>
+</li>
+<li><strong>ValueError</strong> – By <a class="reference external" href="https://docs.python.org/2/library/json.html#json.dump">JSON dump</a>.</li>
+<li><strong>OverflowError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/json.html#json.dump">JSON dump</a>.</p>
+</li>
+<li><strong>TypeError</strong> – <p>By <a class="reference external" href="https://docs.python.org/2/library/json.html#json.dump">JSON dump</a>.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The default value of <strong>meta_file</strong> is a sheer formality because of
+the structure of the class. This function should only be called by 
+the initialization method and that shall raise exceptions if there 
+is some sort of anomaly in the file name or in the file path.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">update_morphology_map</code><span class="sig-paren">(</span><em>morph_string=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>Updates the class variable for keeping the map of morphological 
+classes (e.g. gender, number etc.) to the map of possible values (e.g. 
+masculin, feminin etc. for gender) to their respective frequency.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>morph_string</strong> (<em>str</em>) – The morphological information string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">map of maps of morphological class to value to frequency.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict[str, dict[str, int]]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLReader</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>This class when instantiated will provide a reader object that can be 
+used to access a CoNLL format text file. The specific benifits could be 
+the direct access to sentences by index.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_file</strong> (<em>str</em>) – The input file in CoNLL format</li>
+<li><strong>meta_file</strong> (<em>str</em>) – The metadata file associated with the input_file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>metadataValueError</strong> – If the metadata object failed to initialize.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<code class="descname">get_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the total number of unique relation types in the input file.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The metadata data container for the input file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">CoNLLMetaData object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_next_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Loads the next sentence with respect to the current position
+specified by **current_sentence*</em>.*</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The sentence buffer.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">The sentence buffer data structure.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>lastElementWarning</strong> – If the current sentence is the last sentence.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_previous_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Loads the previous sentence with respect to the current position
+specified by **current_sentence*</em>.*</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The sentence buffer.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">The sentence buffer data structure.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>firstElementWarning</strong> – If the current sentence is the first sentence.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Returns the current sentence buffer. However, if the buffer is empty 
+the read_sentence() method will be called to load the buffer first.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The sentence buffer.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">The sentence buffer data structure (see Note)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>KeyError</strong> – If the sentence ID is unknown for the read call.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>..Note::</dt>
+<dd>The data structure is a list of lists where the inner list is the 
+list of each component of a token definition in CoNLL format. The 
+buffer itself represents one sentence.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">read_sentence</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Reads the sentence referenced by the index number found in the 
+class variable current_sentence and load it in the sentence buffer.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>KeyError</strong> – If the sentence ID is unknown.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-deskinparser-libvector">
 <h4><strong># Module :: deskinparser.libvector</strong>:<a class="headerlink" href="#module-deskinparser-libvector" title="Permalink to this headline">¶</a></h4>
 <p>Created on Tue Jul 18 11:21:34 2017</p>
 <p>Deskin - Orange Labs - Lannion - France</p>
-<span class="target" id="module-libvector"></span><p>descript: to be done soon</p>
+<span class="target" id="module-libvector"></span><p><em>The module to generate vecors for a given file. Each vector shall represent 
+one token and will be grouped by each sentence.</em></p>
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">unitVectorConfiguration</code><span class="sig-paren">(</span><em>reader=None</em>, <em>external=None</em>, <em>relation=None</em>, <em>debug=False</em><span class="sig-paren">)</span></dt>
@@ -314,7 +937,105 @@ update method ().</p>
 quite expainatory.</em></p>
 <dl class="exception">
 <dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">emptyLineWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">firstElementWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
 <em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">invalidPathIOError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.IOError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">errno</code></dt>
+<dd><p>exception errno</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">filename</code></dt>
+<dd><p>exception filename</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">strerror</code></dt>
+<dd><p>exception strerror</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">lastElementWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">metadataValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">newFileIOError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.IOError</span></code></p>
 <dl class="attribute">
 <dt>
@@ -409,6 +1130,38 @@ quite expainatory.</em></p>
 <code class="descname">strerror</code></dt>
 <dd><p>exception strerror</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">skipStepWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">undefinedTypeError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.TypeError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

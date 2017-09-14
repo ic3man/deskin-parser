@@ -15,7 +15,6 @@ variables global dependencies for the parser functionality*
 """
 
 import os
-import sys
 import hashlib
 
 import libexceptions as exp
@@ -105,7 +104,7 @@ def generate_hash(source_file=None): # - DEF::START ---------------------------
     :param str source_file: The full path of the file to be hashed.
     :return: The hash code for the input file.
     :rtype: str
-    :raise invalidFilePathException: Source file path is not valid.
+    :raise Exception: Source file path is not valid.
     
     >>> generate_hash(source_file='/my/own/path/fakedata.conll')
     '328eabe02b7e4540531681be603d51c5a0d97c53'
@@ -154,12 +153,13 @@ def doesTheFileExist(file_path=None): # - DEF::START --------------------------
     actually exists.
     
     :param str file_path: The full path of the file to be tested.
-    :return: True or False.
+    :return: True.
     :rtype: bool
     :raise noneFilePathError: If the the file path is None.
     :raise nonStringFilePathError: If the the file path is not a String.
     :raise zeroLengthStringPathError: If the the file path is a zero length String.
     :raise pathDoesNotExistError: If file path doesnot exist.
+    :raise newFileIOError: The directory exists but the file does not.
     :raise pathIsDirectoryException: If the path is a directory.
 
     >>> doesTheFileExist(file_path='/my/own/path/fakedata.conll')
@@ -172,9 +172,12 @@ def doesTheFileExist(file_path=None): # - DEF::START --------------------------
     elif not len(file_path):
         raise exp.zeroLengthValueError('Empty string was passes as file path')
     elif not os.path.exists(file_path):
+        if os.path.isdir(file_path):
+            raise exp.pathTypeIOError('Path is not a file\nFound: <{}>'.format(file_path))
+        elif os.path.isdir(os.path.dirname(file_path)):
+            raise exp.newFileIOError('Found parent directory but the file deos not exist')
         raise exp.invalidPathIOError('Path does not exist.\nFound: <{}>'.format(file_path))
-    elif os.path.isdir(file_path):
-        raise exp.pathTypeIOError('Path is not a file\nFound: <{}>'.format(file_path))
+   
     return True
 # ----------------------------------------------------------------- DEF:: END -
 

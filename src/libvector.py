@@ -10,7 +10,8 @@ Deskin - Orange Labs - Lannion - France
 
 .. moduleauthor:: Munshi Asadullah <munshi.asadullah@orange.com>
 
-descript: to be done soon
+*The module to generate vecors for a given file. Each vector shall represent 
+one token and will be grouped by each sentence.*
 """
 
 import os
@@ -19,6 +20,7 @@ import sys
 #import libconll
 
 import libutilities as utils
+import libexceptions as exp
 
 class unitVectorConfiguration:
     """ The class to be used to define the input vectors for the parsing task. 
