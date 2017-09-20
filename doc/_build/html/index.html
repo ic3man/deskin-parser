@@ -163,6 +163,12 @@ existance of the element in a particuler relation</p>
 <dd><p>Pertaining to token or surface form of a unit element</p>
 </dd></dl>
 
+<dl class="data">
+<dt>
+<code class="descclassname">libutilities.</code><code class="descname">WORD2VEC_BINARY</code><em class="property"> = 21</em></dt>
+<dd><p><em>Possible **Word2Vec*</em> embedding data formats*</p>
+</dd></dl>
+
 <dl class="function">
 <dt>
 <code class="descclassname">libutilities.</code><code class="descname">doesTheFileExist</code><span class="sig-paren">(</span><em>file_path=None</em><span class="sig-paren">)</span></dt>
@@ -891,38 +897,70 @@ class variable current_sentence and load it in the sentence buffer.</em></p>
 one token and will be grouped by each sentence.</em></p>
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">unitVectorConfiguration</code><span class="sig-paren">(</span><em>reader=None</em>, <em>external=None</em>, <em>relation=None</em>, <em>debug=False</em><span class="sig-paren">)</span></dt>
-<dd><p>The class to be used to define the input vectors for the parsing task. 
-A default configuration will be initialized along with the API 
-providing options to configure as per necessary.</p>
-<dl class="attribute">
-<dt>
-<code class="descname">BASE_CONFIGURATION</code><em class="property"> = {0: 6, 1: 6, 2: 6, 3: 6, 4: 6, 5: 8}</em></dt>
-<dd><p>The base configuration is the basis of how the unit vectors shall be
-defined. The update to this configuration will occure, during the
-execution of the constructor or afterward through the updates of other
-models e.g. update of “EXTERNAL_EMBEDDING” will also update this
-configuration model.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="descname">EXTERNAL_EMBEDDING</code><em class="property"> = {0: None, 1: None, 2: None, 3: None, 4: None, 5: None}</em></dt>
-<dd><p>The external embedding model allowes the use of externer embeddings for
-different elements of a unit vector. The changes for this model can be
-made during the execution of the constructor or afterward through
-update method ().</p>
-</dd></dl>
-
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">CoNLLFileVector</code><span class="sig-paren">(</span><em>reader=None</em><span class="sig-paren">)</span></dt>
+<dd><p><em>The class when initiated with a CoNLLReader object, shall provide the 
+framework to vectorize a file. It will also allow the vectorization to be
+configured. The base configuration is to use all the elements and one hot 
+vector encoding for all components.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>reader</strong> (<em>libconll.CoNLLReader</em>) – The CoNLLReader object to be vectorized.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>noneValueError</strong> – If the value for reader is none.</li>
+<li><strong>TypeError</strong> – If the value for reader is not a CoNLLReader object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The vector configuration is a dictionary of key of each part of token
+information (i.e. surface form, lemma etc.) to a tupple of type of 
+vector, vector data source and source format. The last 2 values are
+relevent if external embedding is used. If the type of vector is set
+to “None”</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The relation type defines the vector configuration of the relations.
+The simple type is just the vector for the relation. The detailed type 
+adds a parity to define wheather the token is the source or the target
+of the relation.</p>
+</div>
 <dl class="method">
 <dt>
-<code class="descname">update_configuration</code><span class="sig-paren">(</span><em>rel_type=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">validate_external_embedding</code><span class="sig-paren">(</span><em>embedding_map=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
+<code class="descname">update_configuration</code><span class="sig-paren">(</span><em>key=None</em>, <em>vector_type=None</em>, <em>embedding=None</em>, <em>embedding_format=20</em><span class="sig-paren">)</span></dt>
+<dd><p><em>The key method to manipulate the vector configuration. Each call may
+configure one vector part specified by the key. If custome embedding is 
+selected as the vector type, a valid embedding data file with correct 
+format value (default value is Word2Vec Text Format) must be provided.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>reader</strong> (<em>libconll.CoNLLReader</em>) – The CoNLLReader object to be vectorized.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>noneValueError</strong> – If the value for reader is none.</li>
+<li><strong>TypeError</strong> – If the value for reader is not a CoNLLReader object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 

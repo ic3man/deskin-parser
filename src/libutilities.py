@@ -94,6 +94,12 @@ MORPHOLOGY_DISTRIBUTION = 18
 RELATION_DISTRIBUTION = 19
 """ Metadata data structure keys for json export and import (range 12-19)
 """
+
+WORD2VEC_TEXT = 20
+WORD2VEC_BINARY = 21
+"""
+*Possible **Word2Vec** embedding data formats*
+"""
 #=====================
 
 def generate_hash(source_file=None): # - DEF::START ---------------------------
@@ -168,7 +174,7 @@ def doesTheFileExist(file_path=None): # - DEF::START --------------------------
     if file_path == None:
         raise exp.noneValueError('None was passes as file path')
     elif not isinstance(file_path, basestring):
-        raise TypeError('File path is not a string.\nFound: <{}>'.format(file_path))
+        raise TypeError('File path is not a string.\nFound: <{}>'.format(type(file_path)))
     elif not len(file_path):
         raise exp.zeroLengthValueError('Empty string was passes as file path')
     elif not os.path.exists(file_path):

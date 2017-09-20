@@ -19,57 +19,62 @@ import sys
 
 #import libconll
 
+import libconll as conll
 import libutilities as utils
 import libexceptions as exp
 
-class unitVectorConfiguration:
-    """ The class to be used to define the input vectors for the parsing task. 
-        A default configuration will be initialized along with the API 
-        providing options to configure as per necessary.
-    """
-    
-    BASE_CONFIGURATION = { utils.TOKEN     : utils.ONE_HOT_VECTOR,
-                           utils.LEMMA     : utils.ONE_HOT_VECTOR,
-                           utils.GPOS      : utils.ONE_HOT_VECTOR,
-                           utils.POS       : utils.ONE_HOT_VECTOR,
-                           utils.MORPH     : utils.ONE_HOT_VECTOR,
-                           utils.RELATION  : utils.SIMPLE_RELATION }
-    """ The base configuration is the basis of how the unit vectors shall be
-        defined. The update to this configuration will occure, during the 
-        execution of the constructor or afterward through the updates of other
-        models e.g. update of "EXTERNAL_EMBEDDING" will also update this
-        configuration model.
-    """
-    
-    EXTERNAL_EMBEDDING = { utils.TOKEN     : None,
-                           utils.LEMMA     : None,
-                           utils.GPOS      : None,
-                           utils.POS       : None,
-                           utils.MORPH     : None,
-                           utils.RELATION  : None }
-    """ The external embedding model allowes the use of externer embeddings for
-        different elements of a unit vector. The changes for this model can be 
-        made during the execution of the constructor or afterward through
-        update method ().
-    """
-    
-    def __init__(self, 
-                 reader=None,
-                 external = None,
-                 relation = None,
-                 debug=False): # DEF:: START ----------------------------------
-        """ The default constructor for defining unit vector
-        """
-        if reader == None:
-            print 'error' # TODO::
-        self.reader = reader
-        self.metadata = self.reader.get_metadata()
-        self.external = external if self.validate_external_embedding(external) else None
-        self.update_configuration(relation)
-    
-    def validate_external_embedding(embedding_map=None): # DEF:: START ------------------------------
-        pass
-    
-    def update_configuration(self, rel_type=None):
-        pass
+class CoNLLFileVector:
+    """ *The class when initiated with a CoNLLReader object, shall provide the 
+    framework to vectorize a file. It will also allow the vectorization to be
+    configured. The base configuration is to use all the elements and one hot 
+    vector encoding for all components.*
         
+    :param libconll.CoNLLReader reader: The CoNLLReader object to be vectorized. 
+    :return: Nothing.
+    :raise noneValueError: If the value for reader is none.
+    :raise TypeError: If the value for reader is not a CoNLLReader object.
+    
+    .. Note::
+        The vector configuration is a dictionary of key of each part of token
+        information (i.e. surface form, lemma etc.) to a tupple of type of 
+        vector, vector data source and source format. The last 2 values are
+        relevent if external embedding is used. If the type of vector is set
+        to "None"
+    
+    .. Note::
+        The relation type defines the vector configuration of the relations.
+        The simple type is just the vector for the relation. The detailed type 
+        adds a parity to define wheather the token is the source or the target
+        of the relation.
+    """
+    def __init__(self, reader=None):
+        # test reader ---------------------------------------------------------
+        if reader == None:
+            raise exp.noneValueError('Reader cannot be "None"')
+        elif not isinstance(reader, conll.CoNLLReader):
+            raise TypeError('Reader must be a CoNLLReader object.\nFound: <{}>'.format(type(reader)))
+        else:
+            self.reader = reader
+        # initiate base configuration -----------------------------------------
+        self.vector_configuration = { utils.TOKEN     : (utils.ONE_HOT_VECTOR, None, None),
+                                      utils.LEMMA     : (utils.ONE_HOT_VECTOR, None, None),
+                                      utils.GPOS      : (utils.ONE_HOT_VECTOR, None, None),
+                                      utils.POS       : (utils.ONE_HOT_VECTOR, None, None),
+                                      utils.MORPH     : (utils.ONE_HOT_VECTOR, None, None),
+                                      utils.RELATION  : (utils.ONE_HOT_VECTOR, None, None) }
+        # by default no embeddings shall be used ------------------------------
+        self.relation_type = utils.SIMPLE_RELATION
+    
+    def update_configuration(self, key=None, vector_type=None, embedding=None, 
+                             embedding_format=utils.WORD2VEC_TEXT):
+        """ *The key method to manipulate the vector configuration. Each call may
+        configure one vector part specified by the key. If custome embedding is 
+        selected as the vector type, a valid embedding data file with correct 
+        format value (default value is Word2Vec Text Format) must be provided.*
+        
+        :param libconll.CoNLLReader reader: The CoNLLReader object to be vectorized. 
+        :return: Nothing.
+        :raise noneValueError: If the value for reader is none.
+        :raise TypeError: If the value for reader is not a CoNLLReader object.
+        """
+        pass
