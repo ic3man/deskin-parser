@@ -13,6 +13,12 @@
 quite expainatory.*
 """
 
+# ============================================================== RuntimeError =
+
+class initializationError(RuntimeError):
+    def __init__(self, *args, **kwargs):
+        RuntimeError.__init__(self, *args, **kwargs)
+
 # ================================================================ ValueError =
 
 class noneValueError(ValueError):
@@ -51,6 +57,7 @@ class newFileIOError(IOError):
     def __init__(self, *args, **kwargs):
         IOError.__init__(self, *args, **kwargs)
 
+# ================================================================== KeyError =
 
 class notAllKeyError(KeyError):
     def __init__(self, *args, **kwargs):
