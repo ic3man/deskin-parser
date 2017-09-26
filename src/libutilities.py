@@ -56,7 +56,7 @@ the existance of the element in a particuler relation and whether it is the
 head or the dependance.
 """
 
-ONE_HOT_VECTOR_DIMENSION_MULTIPLYER = 1.5
+ONE_HOT_VECTOR_DIMENSION_MULTIPLIER = 1.5
 """ In case of one hot encoded vector definition the vector size multiplier 
 allows the accomodation of new entitis to be incorporated in the vector.
 """

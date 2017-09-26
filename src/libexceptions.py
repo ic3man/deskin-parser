@@ -19,6 +19,10 @@ class initializationError(RuntimeError):
     def __init__(self, *args, **kwargs):
         RuntimeError.__init__(self, *args, **kwargs)
 
+class implimentationError(RuntimeError):
+    def __init__(self, *args, **kwargs):
+        RuntimeError.__init__(self, *args, **kwargs)
+
 # ================================================================ ValueError =
 
 class noneValueError(ValueError):
@@ -34,6 +38,10 @@ class unequalValueError(ValueError):
         ValueError.__init__(self, *args, **kwargs)
 
 class metadataValueError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+
+class smallerValueError(ValueError):
     def __init__(self, *args, **kwargs):
         ValueError.__init__(self, *args, **kwargs)
 

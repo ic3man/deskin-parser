@@ -14,10 +14,12 @@ Deskin - Orange Labs - Lannion - France
 one token and will be grouped by each sentence.*
 """
 
-import os
-import sys
+#import os
+#import sys
 
-
+from codecs import open as utfOpen
+from numpy import array as nparray
+from numpy import zeros as npzeros
 
 import libconll as conll
 import libutilities as utils
@@ -32,7 +34,43 @@ class externalEmbeddingReader:
                 self.input = input_file
         except:
             raise IOError('Embedding file error')
+    
+    def get_vector(self, key=None):
+        raise exp.implimentationError('Class method not initialized yet.')
         
+# CLASS ******************************************
+class oneHotVectorReader(externalEmbeddingReader):
+    
+    def __init__(self, element_list=None, dimension=-1):
+        # test element list ---------------------------------------------------
+        if element_list == None:
+            raise exp.noneValueError('Element list cannot be "None"')
+        elif not isinstance(element_list, list):
+            raise TypeError('Element list must be a list object.\nFound: <{}>'.format(type(reader)))
+        elif not len(element_list):
+            raise exp.zeroLengthValueError('Element list cannot be empty.')
+        elif not all([isinstance(e, str) for e in element_list]):
+            raise TypeError('Element list must be a list of str objects.')
+        else:
+            self.input = element_list
+        # test dimension ------------------------------------------------------
+        if dimension == -1:
+            self.dimension = len(self.input)
+        elif dimension < len(self.input):
+            raise exp.smallerValueError('Dimension cannot be smaller than the list size.\n{}(list)::{}(dimension)'.format(len(self.input), dimension))
+        else:
+            self.dimension = dimension
+    
+    def get_vector(self, key=None):
+        if key == None:
+            raise exp.noneValueError('Vector search key cnnot be "None"')
+        try:
+            vpos = self.input.index(key)
+        except KeyError:
+            raise KeyError('String doesnot exist in the input file.\nFound: {}'.format(key))
+        vector = npzeros(self.dimension)
+        vector[vpos] = 1.0
+        return vector
 
 # CLASS ******************************************
 class word2vecTextReader(externalEmbeddingReader):
@@ -40,12 +78,33 @@ class word2vecTextReader(externalEmbeddingReader):
     def __init__(self, input_file=None):
         try:
             super(externalEmbeddingReader, self).__init__(input_file=input_file)
-            self.checkInputFileFormat()
+            self.file_pointer, self.dimensions, self.vector_count = self.init_format()
+            self.vector_map = self.map_vectors()
         except:
             raise exp.initializationError('Failed to initalize reader object')
         
-    def checkInputFileFormat(self):
-        pass
+    def init_format(self):
+        fp = utfOpen(self.input, 'r', 'UTF-8')
+        dim, count = [int(e) for e in fp.readline().srtip().split()]
+        return fp, dim, count
+    
+    def map_vectors(self):
+        vmap = {}
+        for i in range(self.vector_count):
+            cseek = self.file_pointer.tell()
+            key = self.file_pointer.readline().strip().split()[0].strip()
+            vmap[key] = cseek
+        return vmap
+    
+    def get_vector(self, key=None):
+        if key == None:
+            raise exp.noneValueError('Vector search key cnnot be "None"')
+        try:
+            vpos = self.vector_map.get(key)
+        except KeyError:
+            return False
+        self.file_pointer.seek(vpos)
+        return nparray(self.file_pointer.readline().strip().split()[1:].strip())
 
 # CLASS *************
 class CoNLLFileVector:
@@ -80,6 +139,7 @@ class CoNLLFileVector:
             raise TypeError('Reader must be a CoNLLReader object.\nFound: <{}>'.format(type(reader)))
         else:
             self.reader = reader
+        self.metadata = self.reader.get_metadata()        
         # initiate base configuration -----------------------------------------
         self.vector_configuration = { utils.TOKEN     : (utils.ONE_HOT_VECTOR, None),
                                       utils.LEMMA     : (utils.ONE_HOT_VECTOR, None),
@@ -97,12 +157,19 @@ class CoNLLFileVector:
         selected as the vector type, a valid embedding data file with correct 
         format value (default is Word2Vec Text Format) must be provided.*
         
-        :param libconll.CoNLLReader reader: The CoNLLReader object to be vectorized. 
+        :param int key: The key to be configured. 
+        :param int vector_type: The type of vector the key should be.
+        :param externalEmbeddingReader embedding_reader: For external embedding the reader object (see note).
         :return: Nothing.
-        :raise noneValueError: If the value for reader is none.
-        :raise TypeError: If the value for reader is not a CoNLLReader object.
+        :raise noneValueError: If the key is none.
+        :raise noneValueError: If the embedding reader is none.
+        :raise KeyError: If the key does not exist in the vector configuration.
+        :raise ValueError: If the vector_type is not valid.
+        :raise TypeError: If the embedding reader object is not of valid type.
         
         .. Note::
+            The externalEmbeddingReader class is a generic class that is needed
+            to be used to define specific classes for the embedding reader objects.
             
         """
         if key == None:
@@ -113,14 +180,68 @@ class CoNLLFileVector:
         elif vector_type not in [None, utils.ONE_HOT_VECTOR, utils.EXTERNAL_EMBEDDING]:
             raise ValueError('Invalid vector ype.\nFound: {}'.format(vector_type))
         # If new vector types are introduced ... type specific conditional checks
-        # should be implemented in this block.
-        # check block ---------------------------------------------------------
+        # should be implemented in this block. --------------------------------
         elif vector_type == utils.EXTERNAL_EMBEDDING:
-            try:
-                if utils.doesTheFileExist(embedding):
-                    if embedding_format not in [utils.WORD2VEC_TEXT, utils.WORD2VEC_BINARY]:
-                        raise ValueError('Invalid embedding format value found./nFound: {}'.format(embedding_format))
-            except:
-                raise ValueError('For external embedding ... a valid file must be provided')
-        
-            
+            if embedding_reader == None:
+                raise exp.noneValueError('Embedding reader cannot be "None"')
+            elif not isinstance(embedding_reader, externalEmbeddingReader):
+                raise TypeError('The embedding reader object must be an instance of the generic "externalEmbeddingReader" class')
+        else:
+            self.vector_configuration[key] = [vector_type, embedding_reader]
+    
+    def get_base_dimension(self, key=None):
+        if key == None:
+            raise exp.noneValueError('Configuration key cannot be "None"')
+        elif key == utils.TOKEN:
+            return self.metadata.get_token_count()
+        else:
+            raise KeyError('The provided key doesnot exist.\nFound: {}'.format(key))
+    
+    def get_element_list(self, key=None):
+        if key == None:
+            raise exp.noneValueError('Configuration key cannot be "None"')
+        elif key == utils.TOKEN:
+            return self.metadata.get_token_list()
+        #TODO:: Many more :(
+        else:
+            raise KeyError('The provided key doesnot exist.\nFound: {}'.format(key))
+    
+    def generate_vector_profile(self, dim_multiplier=None):
+        vprofile = {}
+        # setting default or custome dimension multiplier ---------------------
+        if dim_multiplier == None or not isinstance(dim_multiplier*1.0, float):
+            dim_multiplier = utils.ONE_HOT_VECTOR_DIMENSION_MULTIPLIER            
+        # token ---------------------------------------------------------------
+        vtype, vreader = self.vector_configuration.get(utils.TOKEN)
+        if vtype == utils.ONE_HOT_VECTOR:
+            vprofile[utils.TOKEN] = oneHotVectorReader(self.get_element_list(utils.TOKEN), self.get_base_dimension(utils.TOKEN)*dim_multiplier)
+        elif vtype == utils.EXTERNAL_EMBEDDING:
+            vprofile[utils.TOKEN] = vreader
+        # lemma ---------------------------------------------------------------
+        vtype, vreader = self.vector_configuration.get(utils.LEMMA)
+        if vtype == utils.ONE_HOT_VECTOR:
+            vprofile[utils.LEMMA] = oneHotVectorReader(self.get_element_list(utils.LEMMA), self.get_base_dimension(utils.LEMMA)*dim_multiplier)
+        elif vtype == utils.EXTERNAL_EMBEDDING:
+            vprofile[utils.LEMMA] = vreader
+        # gpos ----------------------------------------------------------------
+        vtype, vreader = self.vector_configuration.get(utils.GPOS)
+        if vtype == utils.ONE_HOT_VECTOR:
+            vprofile[utils.GPOS] = oneHotVectorReader(self.get_element_list(utils.GPOS), self.get_base_dimension(utils.GPOS)*dim_multiplier)
+        elif vtype == utils.EXTERNAL_EMBEDDING:
+            vprofile[utils.GPOS] = vreader
+        # pos -----------------------------------------------------------------
+        vtype, vreader = self.vector_configuration.get(utils.POS)
+        if vtype == utils.ONE_HOT_VECTOR:
+            vprofile[utils.POS] = oneHotVectorReader(self.get_element_list(utils.POS), self.get_base_dimension(utils.POS)*dim_multiplier)
+        elif vtype == utils.EXTERNAL_EMBEDDING:
+            vprofile[utils.POS] = vreader
+        # TODO:: 2 more
+        return vprofile
+    
+    def vectorize(self):
+        profile = self.generate_vector_profile()
+        for k in sorted(profile.keys()):
+            pass
+
+
+
