@@ -41,12 +41,12 @@ class externalEmbeddingReader:
 # CLASS ******************************************
 class oneHotVectorReader(externalEmbeddingReader):
     
-    def __init__(self, element_list=None, dimension=-1):
+    def __init__(self, element_list=None, dimension=None):
         # test element list ---------------------------------------------------
         if element_list == None:
             raise exp.noneValueError('Element list cannot be "None"')
         elif not isinstance(element_list, list):
-            raise TypeError('Element list must be a list object.\nFound: <{}>'.format(type(reader)))
+            raise TypeError('Element list must be a list object.\nFound: <{}>'.format(type(element_list)))
         elif not len(element_list):
             raise exp.zeroLengthValueError('Element list cannot be empty.')
         elif not all([isinstance(e, str) for e in element_list]):
@@ -54,7 +54,7 @@ class oneHotVectorReader(externalEmbeddingReader):
         else:
             self.input = element_list
         # test dimension ------------------------------------------------------
-        if dimension == -1:
+        if dimension == None:
             self.dimension = len(self.input)
         elif dimension < len(self.input):
             raise exp.smallerValueError('Dimension cannot be smaller than the list size.\n{}(list)::{}(dimension)'.format(len(self.input), dimension))
@@ -141,17 +141,17 @@ class CoNLLFileVector:
             self.reader = reader
         self.metadata = self.reader.get_metadata()        
         # initiate base configuration -----------------------------------------
-        self.vector_configuration = { utils.TOKEN     : (utils.ONE_HOT_VECTOR, None),
-                                      utils.LEMMA     : (utils.ONE_HOT_VECTOR, None),
-                                      utils.GPOS      : (utils.ONE_HOT_VECTOR, None),
-                                      utils.POS       : (utils.ONE_HOT_VECTOR, None),
-                                      utils.MORPH     : (utils.ONE_HOT_VECTOR, None),
-                                      utils.RELATION  : (utils.ONE_HOT_VECTOR, None) }
+        self.vector_configuration = { utils.TOKEN     : (utils.ONE_HOT_VECTOR, 1.0),
+                                      utils.LEMMA     : (utils.ONE_HOT_VECTOR, 1.0),
+                                      utils.GPOS      : (utils.ONE_HOT_VECTOR, 1.0),
+                                      utils.POS       : (utils.ONE_HOT_VECTOR, 1.0),
+                                      utils.MORPH     : (utils.ONE_HOT_VECTOR, 1.0),
+                                      utils.RELATION  : (utils.ONE_HOT_VECTOR, 1.0) }                                      
         # by default no embeddings shall be used ------------------------------
         self.relation_type = utils.SIMPLE_RELATION
         self.sentence_map = {}
     
-    def update_configuration(self, key=None, vector_type=None, embedding_reader=None):
+    def update_configuration(self, key=None, vector_type=None, type_param=None):
         """ *The key method to manipulate the vector configuration. Each call may
         configure one vector part specified by the key. If custome embedding is 
         selected as the vector type, a valid embedding data file with correct 
@@ -181,13 +181,18 @@ class CoNLLFileVector:
             raise ValueError('Invalid vector ype.\nFound: {}'.format(vector_type))
         # If new vector types are introduced ... type specific conditional checks
         # should be implemented in this block. --------------------------------
+        elif vector_type == utils.ONE_HOT_VECTOR:
+            if type_param == None:
+                raise exp.noneValueError('Vector dimension multiplier cannot be "None"')
+            elif not isinstance(type_param, float):
+                raise TypeError('The vector dimension multiplier must be float.\nFound: {}'.format(type(type_param)))
         elif vector_type == utils.EXTERNAL_EMBEDDING:
-            if embedding_reader == None:
+            if type_param == None:
                 raise exp.noneValueError('Embedding reader cannot be "None"')
-            elif not isinstance(embedding_reader, externalEmbeddingReader):
-                raise TypeError('The embedding reader object must be an instance of the generic "externalEmbeddingReader" class')
+            elif not isinstance(type_param, externalEmbeddingReader):
+                raise TypeError('The embedding reader object must be an instance of the generic "externalEmbeddingReader" class.\nFound: {}'.format(type(type_param)))
         else:
-            self.vector_configuration[key] = [vector_type, embedding_reader]
+            self.vector_configuration[key] = [vector_type, type_param]
     
     def get_base_dimension(self, key=None):
         if key == None:
@@ -209,33 +214,14 @@ class CoNLLFileVector:
     def generate_vector_profile(self, dim_multiplier=None):
         vprofile = {}
         # setting default or custome dimension multiplier ---------------------
-        if dim_multiplier == None or not isinstance(dim_multiplier*1.0, float):
-            dim_multiplier = utils.ONE_HOT_VECTOR_DIMENSION_MULTIPLIER            
-        # token ---------------------------------------------------------------
-        vtype, vreader = self.vector_configuration.get(utils.TOKEN)
-        if vtype == utils.ONE_HOT_VECTOR:
-            vprofile[utils.TOKEN] = oneHotVectorReader(self.get_element_list(utils.TOKEN), self.get_base_dimension(utils.TOKEN)*dim_multiplier)
-        elif vtype == utils.EXTERNAL_EMBEDDING:
-            vprofile[utils.TOKEN] = vreader
-        # lemma ---------------------------------------------------------------
-        vtype, vreader = self.vector_configuration.get(utils.LEMMA)
-        if vtype == utils.ONE_HOT_VECTOR:
-            vprofile[utils.LEMMA] = oneHotVectorReader(self.get_element_list(utils.LEMMA), self.get_base_dimension(utils.LEMMA)*dim_multiplier)
-        elif vtype == utils.EXTERNAL_EMBEDDING:
-            vprofile[utils.LEMMA] = vreader
-        # gpos ----------------------------------------------------------------
-        vtype, vreader = self.vector_configuration.get(utils.GPOS)
-        if vtype == utils.ONE_HOT_VECTOR:
-            vprofile[utils.GPOS] = oneHotVectorReader(self.get_element_list(utils.GPOS), self.get_base_dimension(utils.GPOS)*dim_multiplier)
-        elif vtype == utils.EXTERNAL_EMBEDDING:
-            vprofile[utils.GPOS] = vreader
-        # pos -----------------------------------------------------------------
-        vtype, vreader = self.vector_configuration.get(utils.POS)
-        if vtype == utils.ONE_HOT_VECTOR:
-            vprofile[utils.POS] = oneHotVectorReader(self.get_element_list(utils.POS), self.get_base_dimension(utils.POS)*dim_multiplier)
-        elif vtype == utils.EXTERNAL_EMBEDDING:
-            vprofile[utils.POS] = vreader
-        # TODO:: 2 more
+        if dim_multiplier == None or not isinstance(dim_multiplier*1.0, dict):
+            dim_multiplier = utils.ONE_HOT_VECTOR_DIMENSION_MULTIPLIER
+        for key in self.vector_configuration.keys():
+            vtype, vreader = self.vector_configuration.get(key)
+            if vtype == utils.ONE_HOT_VECTOR:
+                vprofile[key] = oneHotVectorReader(self.get_element_list(key), self.get_base_dimension(key)*dim_multiplier)
+            elif vtype == utils.EXTERNAL_EMBEDDING:
+                vprofile[key] = vreader
         return vprofile
     
     def vectorize(self):

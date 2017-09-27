@@ -127,7 +127,7 @@ head or the dependance.</p>
 
 <dl class="data">
 <dt>
-<code class="descclassname">libutilities.</code><code class="descname">ONE_HOT_VECTOR_DIMENSION_MULTIPLYER</code><em class="property"> = 1.5</em></dt>
+<code class="descclassname">libutilities.</code><code class="descname">ONE_HOT_VECTOR_DIMENSION_MULTIPLIER</code><em class="property"> = 1.5</em></dt>
 <dd><p>In case of one hot encoded vector definition the vector size multiplier
 allows the accomodation of new entitis to be incorporated in the vector.</p>
 </dd></dl>
@@ -161,12 +161,6 @@ existance of the element in a particuler relation</p>
 <dt>
 <code class="descclassname">libutilities.</code><code class="descname">TOKEN</code><em class="property"> = 0</em></dt>
 <dd><p>Pertaining to token or surface form of a unit element</p>
-</dd></dl>
-
-<dl class="data">
-<dt>
-<code class="descclassname">libutilities.</code><code class="descname">WORD2VEC_BINARY</code><em class="property"> = 21</em></dt>
-<dd><p><em>Possible **Word2Vec*</em> embedding data formats*</p>
 </dd></dl>
 
 <dl class="function">
@@ -922,7 +916,7 @@ vector encoding for all components.</em></p>
 </table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The vector configuration is a dictionary of key of each part of token
+<p class="last"><strong>The vector configuration</strong> is a dictionary of key of each part of token
 information (i.e. surface form, lemma etc.) to a tupple of type of 
 vector, vector data source and source format. The last 2 values are
 relevent if external embedding is used. If the type of vector is set
@@ -930,37 +924,111 @@ to “None”</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The relation type defines the vector configuration of the relations.
+<p class="last"><strong>The relation type</strong> defines the vector configuration of the relations.
 The simple type is just the vector for the relation. The detailed type 
 adds a parity to define wheather the token is the source or the target
 of the relation.</p>
 </div>
 <dl class="method">
 <dt>
-<code class="descname">update_configuration</code><span class="sig-paren">(</span><em>key=None</em>, <em>vector_type=None</em>, <em>embedding=None</em>, <em>embedding_format=20</em><span class="sig-paren">)</span></dt>
+<code class="descname">generate_vector_profile</code><span class="sig-paren">(</span><em>dim_multiplier=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_base_dimension</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_element_list</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">update_configuration</code><span class="sig-paren">(</span><em>key=None</em>, <em>vector_type=None</em>, <em>type_param=None</em><span class="sig-paren">)</span></dt>
 <dd><p><em>The key method to manipulate the vector configuration. Each call may
 configure one vector part specified by the key. If custome embedding is 
 selected as the vector type, a valid embedding data file with correct 
-format value (default value is Word2Vec Text Format) must be provided.</em></p>
+format value (default is Word2Vec Text Format) must be provided.</em></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>reader</strong> (<em>libconll.CoNLLReader</em>) – The CoNLLReader object to be vectorized.</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> (<em>int</em>) – The key to be configured.</li>
+<li><strong>vector_type</strong> (<em>int</em>) – The type of vector the key should be.</li>
+<li><strong>embedding_reader</strong> (<em>externalEmbeddingReader</em>) – For external embedding the reader object (see note).</li>
+</ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Nothing.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><strong>noneValueError</strong> – If the value for reader is none.</li>
-<li><strong>TypeError</strong> – If the value for reader is not a CoNLLReader object.</li>
+<li><strong>noneValueError</strong> – If the key is none.</li>
+<li><strong>noneValueError</strong> – If the embedding reader is none.</li>
+<li><strong>KeyError</strong> – If the key does not exist in the vector configuration.</li>
+<li><strong>ValueError</strong> – If the vector_type is not valid.</li>
+<li><strong>TypeError</strong> – If the embedding reader object is not of valid type.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The externalEmbeddingReader class is a generic class that is needed
+to be used to define specific classes for the embedding reader objects.</p>
+</div>
 </dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">vectorize</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">externalEmbeddingReader</code><span class="sig-paren">(</span><em>input_file=None</em><span class="sig-paren">)</span></dt>
+<dd><dl class="method">
+<dt>
+<code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">oneHotVectorReader</code><span class="sig-paren">(</span><em>element_list=None</em>, <em>dimension=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libvector.externalEmbeddingReader</span></code></p>
+<dl class="method">
+<dt>
+<code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">word2vecTextReader</code><span class="sig-paren">(</span><em>input_file=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libvector.externalEmbeddingReader</span></code></p>
+<dl class="method">
+<dt>
+<code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">init_format</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">map_vectors</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -993,6 +1061,38 @@ quite expainatory.</em></p>
 <dt>
 <em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">firstElementWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">implimentationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.RuntimeError</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">initializationError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.RuntimeError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
@@ -1175,6 +1275,22 @@ quite expainatory.</em></p>
 <dt>
 <em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">skipStepWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">smallerValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
