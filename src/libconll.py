@@ -59,7 +59,7 @@ class CoNLLMetaData:
         - For any other case the metafile will be generated in the same path \
         where the input file is.
     """
-    def __init__(self, input_file=None, meta_file=None): # DEF:: START --------
+    def __init__(self, input_file=None, meta_file=None, save_meta=True): # DEF:: START --------
         # check input file path -----------------------------------------------
         try:        
             utils.doesTheFileExist(file_path=input_file)
@@ -103,11 +103,16 @@ class CoNLLMetaData:
         # running analysis ----------------------------------------------------
         self.analyze(in_file=input_file)
         # saving metadata -----------------------------------------------------
-        try:
-            self.save_metadata(meta_file=meta_file)
-        except Exception as e:
-            print >> sys.stderr, 'WARNING: Metadata file not saved... re-analysis will be needed next time.'
-            print >> sys.stderr, e
+        if save_meta == None:
+            raise exp.noneValueError('save_meta option flag cnnot be "None"')
+        elif not isinstance(save_meta, bool):
+            raise TypeError('save_meta option flag must be bool type.\nFound: <{}>'.format(type(save_meta)))
+        elif save_meta:
+            try:
+                self.save_metadata(meta_file=meta_file)
+            except Exception as e:
+                print >> sys.stderr, 'WARNING: Metadata file not saved... re-analysis will be needed next time.'
+                print >> sys.stderr, e
 
     def get_sentence_count(self):
         """ *Returns the number of sentences in the file.*

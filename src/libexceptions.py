@@ -45,6 +45,10 @@ class smallerValueError(ValueError):
     def __init__(self, *args, **kwargs):
         ValueError.__init__(self, *args, **kwargs)
 
+class greaterValueError(ValueError):
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
+
 # ================================================================= TypeError =
 
 class undefinedTypeError(TypeError):

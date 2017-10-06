@@ -267,7 +267,7 @@ will be returned.</p>
 The Primary use is as a sentence stream for quick travarsal of the content.</em></p>
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLMetaData</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">libconll.</code><code class="descname">CoNLLMetaData</code><span class="sig-paren">(</span><em>input_file=None</em>, <em>meta_file=None</em>, <em>save_meta=True</em><span class="sig-paren">)</span></dt>
 <dd><p><em>The class that shall provide the data structure and the supporting 
 methods to store, manipulate and access metadata extracted from a file in 
 CoNLL format. CoNLL metadata initialization method will allow us to make 
@@ -931,17 +931,27 @@ of the relation.</p>
 </div>
 <dl class="method">
 <dt>
-<code class="descname">generate_vector_profile</code><span class="sig-paren">(</span><em>dim_multiplier=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">get_base_dimension</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<code class="descname">generate_vector_profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt>
 <code class="descname">get_element_list</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_relation_vector</code><span class="sig-paren">(</span><em>multiplier=1.3</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_simple_morph_vector</code><span class="sig-paren">(</span><em>dimension_multiplier=1.3</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">set_relation_representation_type</code><span class="sig-paren">(</span><em>new_type=8</em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -992,7 +1002,7 @@ to be used to define specific classes for the embedding reader objects.</p>
 
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">externalEmbeddingReader</code><span class="sig-paren">(</span><em>input_file=None</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">externalEmbeddingReader</code></dt>
 <dd><dl class="method">
 <dt>
 <code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
@@ -1002,8 +1012,39 @@ to be used to define specific classes for the embedding reader objects.</p>
 
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">oneHotVectorReader</code><span class="sig-paren">(</span><em>element_list=None</em>, <em>dimension=None</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">morphOneHotVectorReader</code><span class="sig-paren">(</span><em>class_value_map=None</em>, <em>dimension_multiplier=1.3</em><span class="sig-paren">)</span></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libvector.externalEmbeddingReader</span></code></p>
+<dl class="method">
+<dt>
+<code class="descname">append_input_elements</code><span class="sig-paren">(</span><em>new_elements=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_element_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">libvector.</code><code class="descname">oneHotVectorReader</code><span class="sig-paren">(</span><em>element_list=None</em>, <em>dimension_multiplier=1.3</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libvector.externalEmbeddingReader</span></code></p>
+<dl class="method">
+<dt>
+<code class="descname">append_input_elements</code><span class="sig-paren">(</span><em>new_elements=None</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_element_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt>
 <code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
@@ -1017,17 +1058,17 @@ to be used to define specific classes for the embedding reader objects.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">libvector.externalEmbeddingReader</span></code></p>
 <dl class="method">
 <dt>
+<code class="descname">getDimension</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">getVectorCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
 <code class="descname">get_vector</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">init_format</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt>
-<code class="descname">map_vectors</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1061,6 +1102,22 @@ quite expainatory.</em></p>
 <dt>
 <em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">firstElementWarning</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">message</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt>
+<em class="property">exception </em><code class="descclassname">libexceptions.</code><code class="descname">greaterValueError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
 <dl class="attribute">
 <dt>
 <code class="descname">args</code></dt>
