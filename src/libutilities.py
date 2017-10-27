@@ -19,55 +19,60 @@ import hashlib
 
 import libexceptions as exp
 
+NULL = -1
+
 # constants: vector definition --------------------------------------------
 # TODO: add or update if needed -------------------------------------------
-TOKEN = 0
+TID = 0
+
+TOKEN = 1
 """ Pertaining to token or surface form of a unit element"""
 
-LEMMA = 1
+LEMMA = 2
 """ Pertaining to lemma of a unit element"""
 
-GPOS = 2
+GPOS = 3
 """ Pertaining to general PoS of a unit element"""
 
-POS = 3
+POS = 4
 """ Pertaining to deailes or more granuler PoS of a unit element"""
 
-MORPH = 4
+MORPH = 5
 """ Pertaining to morphological definition of a unit element"""
 
-RELATION = 5
+RELATION = 6
 """ Pertaining to dependency relation of a unit element"""
 
-ONE_HOT_VECTOR = 6
+RELATION_HEAD = 7
+
+NOT_IN_USE = 8
+
+CONLL_TOKEN_DEFINITION = [TID, TOKEN, LEMMA, GPOS, POS, MORPH, RELATION_HEAD, RELATION, NOT_IN_USE, NOT_IN_USE]
+
+ONE_HOT_VECTOR = 11
 """ One hot encoded vector"""
 
-EXTERNAL_EMBEDDING = 7
+EXTERNAL_EMBEDDING = 12
 """ Some sort of external embedding"""
 
-SIMPLE_RELATION = 8
+SIMPLE_RELATION = 21
 """ Defining the connection of an unit element to a relation through the
 existance of the element in a particuler relation
 """
 
-DETAIL_RELATION = 9
+DIRECTIONAL_RELATION = 22
 """ Defining the connection of an unit element to a relation through both 
 the existance of the element in a particuler relation and whether it is the 
 head or the dependance.
 """
 
-ONE_HOT_VECTOR_DIMENSION_MULTIPLIER = 1.5
-""" In case of one hot encoded vector definition the vector size multiplier 
-allows the accomodation of new entitis to be incorporated in the vector.
-"""
-
 # constants: token definition type ----------------------------------------
 # TODO: add or update if needed -------------------------------------------
-BASIC_TEN_SLOT_TYPE = 10
+BASIC_TEN_SLOT_TYPE = 31
 """ The basic format of a line (a token definition) in CoNLL format 
 """
 
-COMPOUND_DEFINITION = 11
+COMPOUND_DEFINITION = 32
 """ A newer addition that represents the contraction (e.g. du = de + le) that
 has been split into two tokens. The representation is the token IDs that are 
 originaly together.
@@ -84,16 +89,17 @@ HASH_BLOCKSIZE = 65536
 """ Default buffer size for file hash generation
 """
 
-FILE_HASH_VALUE = 12
-SENTENCE_CONFIGURATION = 13
-TOKEN_DISTRIBUTION = 14
-LEMMA_DISTRIBUTION = 15
-GPOS_DISTRIBUTION = 16
-POS_DISTRIBUTION = 17
-MORPHOLOGY_DISTRIBUTION = 18
-RELATION_DISTRIBUTION = 19
+FILE_HASH_VALUE = 101
+SENTENCE_CONFIGURATION = 102
+TOKEN_DISTRIBUTION = 103
+LEMMA_DISTRIBUTION = 104
+GPOS_DISTRIBUTION = 105
+POS_DISTRIBUTION = 106
+MORPHOLOGY_DISTRIBUTION = 107
+RELATION_DISTRIBUTION = 108
 """ Metadata data structure keys for json export and import (range 12-19)
 """
+
 #=====================
 
 def generate_hash(source_file=None): # - DEF::START ---------------------------

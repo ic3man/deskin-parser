@@ -14,6 +14,8 @@ Deskin - Orange Labs - Lannion - France
 The Primary use is as a sentence stream for quick travarsal of the content.*
 """
 
+import libbase as base
+
 import os
 import sys
 
@@ -84,7 +86,7 @@ class CoNLLMetaData:
             utils.doesTheFileExist(file_path=meta_file)
         except exp.newFileIOError:
             skip_loading = True
-        except (TypeError, ValueError, exp.invalidPathIOErro):
+        except (TypeError, ValueError, exp.invalidPathIOError):
             meta_file = self.file_location + '/' + self.file_name + utils.META_EXTENSION
         except exp.pathTypeIOError:
             meta_file = meta_file + '/' + self.file_name + utils.META_EXTENSION
@@ -396,6 +398,25 @@ class CoNLLMetaData:
             self.morphology_distribution_map[g[0]] = self.morphology_distribution_map.get(g[0], {})
             self.morphology_distribution_map[g[0]][g[1]] = self.morphology_distribution_map[g[0]].get(g[1], 0) + 1
     
+    def __read_line(self, file_pointer=None):
+        if file_pointer == None:
+            raise ValueError('File pointer object cannot be "None"')
+        char_buffer = []
+        init_pos = file_pointer.tell()
+        cur_pos = None
+        while True:
+            old_pos = cur_pos
+            char = file_pointer.read(1)
+            cur_pos = file_pointer.tell()
+            if old_pos == cur_pos:
+                file_pointer.close()
+                return init_pos, None, ''.join(char_buffer)
+            if char == '\n':
+                break
+            else:
+                char_buffer.append(char)
+        return init_pos, file_pointer, ''.join(char_buffer)
+            
     def analyze(self, in_file=None):
         """ *Load and analyze the input file to generate metadata and update 
         class level variables.*
@@ -409,22 +430,20 @@ class CoNLLMetaData:
         :raise TypeError: If invalidtoken type is found.
         """
         # generate hash value -------------------------------------------------
-        try:
-            self.file_hash_value = utils.generate_hash(in_file)
-        except Exception:
-            raise IOError('Hash generation failed.')
+        self.file_hash_value = utils.generate_hash(in_file)
         # open file for processing --------------------------------------------
         fp = utfOpen(in_file, mode='r', encoding='UTF-8')
         # initiate local variables --------------------------------------------
-        offsetValue = fp.tell()
+        offsetValue = None
         lineCounter = 0
         sentenceCounter = 0
         sentenceBuffer = []
         # process the file line by line ---------------------------------------
-        for line in fp: # read a lines ----------------------------------------
+        while fp != None:
+            offsetValue, fp, line = self.__read_line(fp) # read a lines -------    
             lineCounter += 1 # increment line counter -------------------------
             if not len(line.strip()): # --------------------------------------- either a sentence boundery or just an empty line
-                if not len(sentenceBuffer): # --------------------------------- just an empty line before any sentence is buffered
+                if not len(sentenceBuffer) and fp != None: # --------------------------------- just an empty line before any sentence is buffered
                     offsetValue = fp.tell()
                     continue # let's go back to work --------------------------
                 while len(sentenceBuffer): # ---------------------------------- cycle through the sentence buffer
@@ -459,14 +478,49 @@ class CoNLLMetaData:
                     # followed by a list of token types expected
                     self.sentence_configuration[sentenceCounter] = [lineCounter, offsetValue, []]
                 sentenceBuffer.append(line.strip())
-            offsetValue = fp.tell()
-        fp.close()#------------------------------------------------------------ close the file
 # CLASS:: END =================================================================
 
 
 # CLASS:: a class of sudo stream of CoNLL format sentences --------------------
 # =============================================================================
-class CoNLLReader:
+class annotatedCoNLLToken(base.annotatedString):
+            
+    def __init__(self, token=None, token_def=utils.CONLL_TOKEN_DEFINITION):
+        if token == None:
+            raise exp.noneValueError('Token cannot be "None"')
+        elif not isinstance(token, list):
+            raise TypeError('Token must be a list.\nFound: {}'.format(type(token)))
+        elif token_def == None:
+            raise exp.noneValueError('Token Definition cannot be "None"')
+        elif not isinstance(token_def, list):
+            raise TypeError('Token Definition must be a list.\nFound: {}'.format(type(token_def)))
+        elif len(token) != len(token_def):
+            raise exp.unequalValueError('Token list size doesnot match the definition list size.\n{}(Token):{}(Definition)'.format(len(token), len(token_def)))
+        else:
+            self.annotation_map = {token_def[i]:token[i].lower() for i in range(len(token)) if token_def[i] != utils.NOT_IN_USE}            
+    
+    def getAnnotationKeyList(self):
+        return self.annotation_map.keys()
+    
+    def setValue(self, annotation_key=None, value=None):
+        if annotation_key == None:
+            raise exp.noneValueError('Annotation Key cannot be "None"')
+        elif annotation_key not in self.getAnnotationKeyList():
+            raise KeyError('Invalid key passed.\nFound: {}'.format(annotation_key))
+        elif value == None:
+            raise exp.noneValueError('Annotation value cannot be "None"')
+        self.annotation_map[annotation_key] = value
+    
+    def getValue(self, annotation_key=None):
+        if annotation_key == None:
+            raise exp.noneValueError('Annotation Key cannot be "None"')
+        elif annotation_key not in self.getAnnotationKeyList():
+            raise KeyError('Invalid key passed.\nFound: {}'.format(annotation_key))
+        return self.annotation_map.get(annotation_key)
+        
+# CLASS:: a class of sudo stream of CoNLL format sentences --------------------
+# =============================================================================
+class CoNLLFileReader(base.fileReader):
     """ *This class when instantiated will provide a reader object that can be 
     used to access a CoNLL format text file. The specific benifits could be 
     the direct access to sentences by index.*
@@ -478,24 +532,31 @@ class CoNLLReader:
     """
     def __init__(self, input_file=None, meta_file=None):
         # load metadta ---------------------------------------------------------
-        try:
-            self.metadata = CoNLLMetaData(input_file=input_file, meta_file=meta_file)
-        except:
-            raise exp.metadataValueError('Metadata object returned an exception.')
+        self.metadata = CoNLLMetaData(input_file=input_file, meta_file=meta_file, save_meta=False)
         # load file pointer of the input file ---------------------------------
         self.file_pointer = utfOpen(input_file, mode='r', encoding='UTF-8')
-        self.current_sentence = 1        
-        self.sentence_buffer = []
-            
-    def get_metadata(self):
-        """ *Returns the total number of unique relation types in the input file.*
     
-        :return: The metadata data container for the input file.
-        :rtype: CoNLLMetaData object
-        """
-        return self.metadata
-    
-    def read_sentence(self):
+    def get_key_elements(self, key=None):
+        if key == None:
+            raise exp.noneValueError('Element key cannot be "None"')
+        elif not isinstance(key, int):
+            raise TypeError('Configuration key must be int.\nFound: {}'.format(type(key)))
+        elif key == utils.TOKEN:
+            return self.metadata.get_token_list()
+        elif key == utils.LEMMA:
+            return self.metadata.get_lemma_list()
+        elif key == utils.GPOS:
+            return self.metadata.get_generic_pos_list()
+        elif key == utils.POS:
+            return self.metadata.get_pos_list()
+        elif key == utils.MORPH:
+            return self.metadata.get_morphological_class_value_map()
+        elif key == utils.RELATION:
+            return self.metadata.get_relation_list()
+        else:
+            raise KeyError('Unidentified key detected.\nFound: {}'.format(key))
+        
+    def __read_sentence(self):
         """ *Reads the sentence referenced by the index number found in the 
         class variable current_sentence and load it in the sentence buffer.*
         
@@ -521,13 +582,17 @@ class CoNLLReader:
                     lineOffset += 1
                     continue # this is a precaution but should not happend ----
                 for i in range(len(sentenceBuffer)):#-------------------------------  cycle through the sentence buffer
-                    if config[i] == utils.BASIC_TEN_SLOT_TYPE:
-                        self.sentence_buffer.append([e.strip() for e in sentenceBuffer[i].strip().split()])
+                    if config[i][-1] == utils.BASIC_TEN_SLOT_TYPE:
+                        self.sentence_buffer.append(annotatedCoNLLToken(token=[e.strip() for e in sentenceBuffer[i].strip().split()]))
+                    return
             else:
                 sentenceBuffer.append(line.strip())
                 lineOffset += 1
     
-    def get_sentence(self):
+    def reset(self):
+        self.current_sentence = 1
+    
+    def get_current_sentence(self):
         """ *Returns the current sentence buffer. However, if the buffer is empty 
         the read_sentence() method will be called to load the buffer first.*
         
@@ -541,7 +606,7 @@ class CoNLLReader:
             buffer itself represents one sentence.
         """
         if not len(self.sentence_buffer):
-            self.read_sentence()
+            self.__read_sentence()
         return self.sentence_buffer
     
     def get_next_sentence(self):
@@ -552,10 +617,10 @@ class CoNLLReader:
         :rtype: The sentence buffer data structure.
         :raise lastElementWarning: If the current sentence is the last sentence.
         """
-        if self.current_sentence == self.metadata.get_total_sentence_count():
+        if self.current_sentence == self.metadata.get_sentence_count():
             raise exp.lastElementWarning('Current sentence is the last sentence.')
         self.current_sentence += 1
-        self.read_sentence()
+        self.__read_sentence()
         return self.sentence_buffer
     
     def get_previous_sentence(self):
@@ -569,7 +634,7 @@ class CoNLLReader:
         if self.current_sentence == 1:
             raise exp.firstElementWarning('Current sentence is the first sentence.')
         self.current_sentence -= 1
-        self.read_sentence()
+        self.__read_sentence()
         return self.sentence_buffer        
 
 # CLASS:: END =================================================================

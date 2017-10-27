@@ -17,22 +17,20 @@ one token and will be grouped by each sentence.*
 #import os
 #import sys
 
+import libbase as base
+
 from codecs import open as utfOpen
+
 from numpy import array as nparray
 from numpy import zeros as npzeros
+from numpy import concatenate as npcat
 
 import libconll as conll
 import libutilities as utils
 import libexceptions as exp
-
-# CLASS *********************
-class externalEmbeddingReader:
-
-    def get_vector(self, key=None):
-        raise exp.implimentationError('Class method not initialized yet.')
-        
+       
 # CLASS ******************************************
-class oneHotVectorReader(externalEmbeddingReader):
+class listOneHotVectorReader(base.vectorReader):
     
     def __init__(self, element_list=None, dimension_multiplier=1.3):
         # test element list ---------------------------------------------------
@@ -42,99 +40,99 @@ class oneHotVectorReader(externalEmbeddingReader):
             raise TypeError('Element list must be a list object.\nFound: <{}>'.format(type(element_list)))
         elif not len(element_list):
             raise exp.zeroLengthValueError('Element list cannot be empty.')
-        elif not all([isinstance(e, str) for e in element_list]):
-            raise TypeError('Element list must be a list of str objects.')
         else:
             self.elements = element_list
         # test dimension ------------------------------------------------------
         if dimension_multiplier == None:
-            self.dimension = len(self.elements)*1.3
+            dimension_multiplier = 1.3
         elif dimension_multiplier < 1.0:
             raise exp.smallerValueError('Dimension multiplier cannot be smaller than 1.\nFound: {}'.format(dimension_multiplier))
-        else:
-            self.dimension = len(self.elements)*dimension_multiplier
+        self.dimension =  int(round(len(self.elements)*dimension_multiplier))
     
-    def append_input_elements(self, new_elements=None):
-        if new_elements == None:
+    def updateReader(self, update_elements=None):
+        if update_elements == None:
             raise exp.noneValueError('Additional element list cannot be "None"')
-        elif not isinstance(new_elements, list):
-            raise TypeError('Additional element list must be a list object.\nFound: <{}>'.format(type(new_elements)))
-        elif not len(new_elements):
+        elif not isinstance(update_elements, list):
+            raise TypeError('Additional element list must be a list object.\nFound: <{}>'.format(type(update_elements)))
+        elif not len(update_elements):
             raise exp.zeroLengthValueError('Additional element list cannot be empty.')
-        elif not all([isinstance(e, str) for e in new_elements]):
-            raise TypeError('Additional element list must be a list of str objects.')
-        elif len(self.elements) + len(new_elements) > self.dimension:
-            raise exp.greaterValueError('Exceeding current vector dimension limit.\n{}(old):{}(new)'.format(self.dimension, len(self.elements) + len(new_elements)))
         else:
-            self.elements.extend(new_elements)
-    
-    def get_element_list(self):
-        return self.elements
-    
+            # filter elements and add them to the elements list
+            self.elements.extend([e for e in update_elements if e not in self.elements])
+            if len(self.elements) > self.dimension:
+                raise exp.greaterValueError('Exceeding vector dimension limit.\n{}(old):{}(new)'.format(self.dimension, len(self.elements)))
+        
     def get_vector(self, key=None):
         if key == None:
-            raise exp.noneValueError('Vector search key cnnot be "None"')
+            raise exp.noneValueError('Vector search key cannot be "None"')
         try:
-            vpos = self.input.index(key)
+            vpos = self.elements.index(key)
         except KeyError:
-            raise KeyError('String doesnot exist in the vocabulary.\nFound: {}'.format(key))
-        vector = npzeros(self.dimension)
+            raise KeyError('Key doesnot exist in the vocabulary.\nFound: {}'.format(key))
+        vector = npzeros(self.dimension)        
         vector[vpos] = 1.0
         return vector
 
 # CLASS ******************************************
-class morphOneHotVectorReader(externalEmbeddingReader):
+class classMembersOneHotVectorReader(base.vectorReader):
     
-    def __init__(self, class_value_map=None, dimension_multiplier=1.3):
+    def __init__(self, class_list_map=None, dimension_multiplier=1.3):
         # test element list ---------------------------------------------------
-        if class_value_map == None:
-            raise exp.noneValueError('Element map cannot be "None"')
-        elif not isinstance(class_value_map, dict):
-            raise TypeError('Element map must be a dict object.\nFound: <{}>'.format(type(class_value_map)))
-        elif not len(class_value_map):
-            raise exp.zeroLengthValueError('Element map cannot be empty.')
-        elif not all([isinstance(e, str) for e in element_list]):
-            raise TypeError('Element list must be a list of str objects.')
+        if class_list_map == None:
+            raise exp.noneValueError('The class list map cannot be "None"')
+        elif not isinstance(class_list_map, dict):
+            raise TypeError('The class list map must be a dict object.\nFound: <{}>'.format(type(class_list_map)))
+        elif not len(class_list_map):
+            raise exp.zeroLengthValueError('The class list map cannot be empty.')
         else:
-            self.elements = element_list
+            self.elements = class_list_map
+            self.classes = class_list_map.keys()
         # test dimension ------------------------------------------------------
         if dimension_multiplier == None:
-            self.dimension = len(self.elements)*1.3
+            dimension_multiplier = 1.3
         elif dimension_multiplier < 1.0:
             raise exp.smallerValueError('Dimension multiplier cannot be smaller than 1.\nFound: {}'.format(dimension_multiplier))
-        else:
-            self.dimension = len(self.elements)*dimension_multiplier
+        self.dimension = {k: int(round(len(self.elements.get(k))*dimension_multiplier)) for k in sorted(self.elements.keys())}
     
-    def append_input_elements(self, new_elements=None):
-        if new_elements == None:
-            raise exp.noneValueError('Additional element list cannot be "None"')
-        elif not isinstance(new_elements, list):
-            raise TypeError('Additional element list must be a list object.\nFound: <{}>'.format(type(new_elements)))
-        elif not len(new_elements):
-            raise exp.zeroLengthValueError('Additional element list cannot be empty.')
-        elif not all([isinstance(e, str) for e in new_elements]):
-            raise TypeError('Additional element list must be a list of str objects.')
-        elif len(self.elements) + len(new_elements) > self.dimension:
-            raise exp.greaterValueError('Exceeding current vector dimension limit.\n{}(old):{}(new)'.format(self.dimension, len(self.elements) + len(new_elements)))
+    def updateReader(self, update_elements=None):
+        if update_elements == None:
+            raise exp.noneValueError('Additional class list map cannot be "None"')
+        elif not isinstance(update_elements, dict):
+            raise TypeError('Additional class list map must be a dict object.\nFound: <{}>'.format(type(update_elements)))
+        elif not len(update_elements):
+            raise exp.zeroLengthValueError('Additional class list map cannot be empty.')
         else:
-            self.elements.extend(new_elements)
-    
-    def get_element_list(self):
-        return self.elements
+            for k in update_elements.keys():
+                if k not in self.classes:
+                    self.classes.append(k)
+                    self.elements[k] = update_elements.get(k)
+                    self.dimension[k] = len(update_elements.get(k))
+                else:
+                    self.elements[k] = self.elements.get(k, [])
+                    self.elements[k].extend([e for e in update_elements.get(k) if e not in self.elements[k]])                
+                    if len(self.elements.get(k)) > self.dimension.get(k):
+                        raise exp.greaterValueError('Exceeding vector dimension limit for the class: {}.\n{}(old):{}(new)'.format(k, self.dimension, len(self.elements)))
     
     def get_vector(self, key=None):
         if key == None:
-            raise exp.noneValueError('Vector search key cnnot be "None"')
-        try:
-            vpos = self.input.index(key)
-        except KeyError:
-            raise KeyError('String doesnot exist in the vocabulary.\nFound: {}'.format(key))
-        vector = npzeros(self.dimension)
-        vector[vpos] = 1.0
-        return vector
+            raise exp.noneValueError('Vector search key cannot be "None"')
+        elif not isinstance(key, dict):
+            raise TypeError('Vector search key must be a dict object.\nFound: <{}>'.format(type(key)))
+        for k in key.keys():
+            if k not in self.classes:
+                raise KeyError('Class doesnot exist in the vocabulary.\nFound: {}'.format(k))
+            elif key.get(k) not in self.elements.get(k):
+                raise KeyError('A value for the class::{} doesnot exist.\nFound: {}'.format(k, key.get(k)))
+        vectorList = []
+        for c in self.classes:
+            vectorPart = npzeros(self.dimension.get(c))
+            if c in key.keys():
+                vectorPart[self.elements.get(c).index(key.get(c))] = 1.0
+            vectorList.append(vectorPart)        
+        return npcat(vectorList)
 
 # CLASS ******************************************
-class word2vecTextReader(externalEmbeddingReader):
+class word2vecTextReader(base.vectorReader):
     
     def __init__(self, input_file=None):
         try:
@@ -147,8 +145,8 @@ class word2vecTextReader(externalEmbeddingReader):
         
     def __init_format(self):
         fp = utfOpen(self.input, 'r', 'UTF-8')
-        dim, count = [int(e) for e in fp.readline().srtip().split()]
-        return fp, dim, count
+        vocabSize, vecSize = [int(e) for e in fp.readline().srtip().split()]
+        return fp, vecSize, vocabSize
     
     def __map_vectors(self):
         vmap = {}
@@ -163,19 +161,22 @@ class word2vecTextReader(externalEmbeddingReader):
     
     def getVectorCount(self):
         return self.vector_count
-        
+    
+    def updateReader(self, new_elements=None):
+        return
+    
     def get_vector(self, key=None):
         if key == None:
-            raise exp.noneValueError('Vector search key cnnot be "None".')
+            raise exp.noneValueError('Vector search key cannot be "None".')
         try:
             vpos = self.vector_map.get(key)
         except KeyError:
-            return False
+            return npzeros(self.getDimension())
         self.file_pointer.seek(vpos)
         return nparray(self.file_pointer.readline().strip().split()[1:].strip())
 
 # CLASS *************
-class CoNLLFileVector:
+class CoNLLFileVector(base.fileVectorReader):
     """ *The class when initiated with a CoNLLReader object, shall provide the 
     framework to vectorize a file. It will also allow the vectorization to be
     configured. The base configuration is to use all the elements and one hot 
@@ -199,27 +200,42 @@ class CoNLLFileVector:
         adds a parity to define wheather the token is the source or the target
         of the relation.
     """
-    def __init__(self, reader=None):
+    def __init__(self, file_reader=None):
         # test reader ---------------------------------------------------------
-        if reader == None:
-            raise exp.noneValueError('Reader cannot be "None"')
-        elif not isinstance(reader, conll.CoNLLReader):
-            raise TypeError('Reader must be a CoNLLReader object.\nFound: <{}>'.format(type(reader)))
+        if file_reader == None:
+            raise exp.noneValueError('Data file reader cannot be "None"')
+        elif not isinstance(file_reader, base.fileReader):
+            raise TypeError('Reader must be a fileReader object.\nFound: <{}>'.format(type(file_reader)))
         else:
-            self.reader = reader
-        self.metadata = self.reader.get_metadata()        
+            self.file_reader = file_reader
         # initiate base configuration -----------------------------------------
-        self.vector_configuration = { utils.TOKEN     : (utils.ONE_HOT_VECTOR, 1.3),
-                                      utils.LEMMA     : (utils.ONE_HOT_VECTOR, 1.3),
-                                      utils.GPOS      : (utils.ONE_HOT_VECTOR, 1.3),
-                                      utils.POS       : (utils.ONE_HOT_VECTOR, 1.3),
-                                      utils.MORPH     : (utils.ONE_HOT_VECTOR, 1.3),
-                                      utils.RELATION  : (utils.ONE_HOT_VECTOR, 1.3) }                                      
+        self.vector_configuration = { utils.TOKEN     : None,
+                                      utils.LEMMA     : None,
+                                      utils.GPOS      : None,
+                                      utils.POS       : None,
+                                      utils.MORPH     : None }
         # by default no embeddings shall be used ------------------------------
-        self.relation_representation_type = utils.SIMPLE_RELATION
         self.sentence_map = {}
     
-    def update_configuration(self, key=None, vector_type=None, type_param=None):
+    def set_one_hot_reader(self, key=None, dimension_multiplier=1.3):
+        if key == None:
+            raise exp.noneValueError('Configuration key cannot be "None"')
+        elif key not in self.vector_configuration.keys():
+            raise KeyError('The provided key doesnot exist.\nFound: {}'.format(key))
+        else:
+            if dimension_multiplier == None:
+                dimension_multiplier = 1.3
+            elif dimension_multiplier < 1.0:
+                raise exp.smallerValueError('Dimension multiplier cannot be smaller than 1.0.\nFound: {}'.format(dimension_multiplier))
+            key_elements = self.file_reader.get_key_elements(key=key)
+            if isinstance(key_elements, list):
+                self.vector_configuration[key] = listOneHotVectorReader(key_elements, dimension_multiplier)
+            elif isinstance(key_elements, dict):
+                self.vector_configuration[key] = classMembersOneHotVectorReader(key_elements, dimension_multiplier)
+            else:
+                raise TypeError('Invalid Key Element data type found, expected list or dict.\nFound: {}'.format(type(key_elements)))
+                    
+    def set_reader(self, key=None, reader=None):
         """ *The key method to manipulate the vector configuration. Each call may
         configure one vector part specified by the key. If custome embedding is 
         selected as the vector type, a valid embedding data file with correct 
@@ -244,71 +260,54 @@ class CoNLLFileVector:
             raise exp.noneValueError('Configuration key cannot be "None"')
         elif key not in self.vector_configuration.keys():
             raise KeyError('The provided key doesnot exist.\nFound: {}'.format(key))
-        # TODO:: if other vector types are to be introduced this list must be updated
-        elif vector_type not in [None, utils.ONE_HOT_VECTOR, utils.EXTERNAL_EMBEDDING]:
-            raise ValueError('Invalid vector ype.\nFound: {}'.format(vector_type))
-        # If new vector types are introduced ... type specific conditional checks
-        # should be implemented in this block. --------------------------------
-        elif vector_type == utils.ONE_HOT_VECTOR:
-            if type_param == None:
-                raise exp.noneValueError('Vector dimension multiplier cannot be "None"')
-            elif not isinstance(type_param, float):
-                raise TypeError('The vector dimension multiplier must be float.\nFound: {}'.format(type(type_param)))
-        elif vector_type == utils.EXTERNAL_EMBEDDING:
-            if type_param == None:
-                raise exp.noneValueError('Embedding reader cannot be "None"')
-            elif not isinstance(type_param, externalEmbeddingReader):
-                raise TypeError('The embedding reader object must be an instance of the generic "externalEmbeddingReader" class.\nFound: {}'.format(type(type_param)))
+        elif reader == None:
+            raise exp.noneValueError('The reader object cannot be "None"')
+        elif not isinstance(reader, base.fileReader):
+            raise TypeError('The reader must be a fileReader object.\nFound: {}'.format(type(reader)))
         else:
-            self.vector_configuration[key] = (vector_type, type_param)
+            self.vector_configuration[key] = reader
     
-    def set_relation_representation_type(self, new_type=utils.SIMPLE_RELATION):
-        pass
-            
-    def get_element_list(self, key=None):
-        if key == None:
-            raise exp.noneValueError('Configuration key cannot be "None"')
-        elif not isinstance(key, int):
-            raise TypeError('Configuration key must be int.\nFound: {}'.format(type(key)))
-        elif key == utils.TOKEN:
-            return self.metadata.get_token_list()
-        elif key == utils.LEMMA:
-            return self.metadata.get_lemma_list()
-        elif key == utils.GPOS:
-            return self.metadata.get_generic_pos_list()
-        elif key == utils.POS:
-            return self.metadata.get_pos_list()
-        else:
-            raise KeyError('The provided key is not valid.\nFound: {}'.format(key))
-    
-    def get_simple_morph_vector(self, dimension_multiplier=1.3):
-        if dimension_multiplier == None:
-            dimension_multiplier = 1.3
-        elif dimension_multiplier < 1.0:
-            raise exp.smallerValueError('Dimension multiplier cannot be smaller than 1.\nFound: {}'.format(dimension_multiplier))
-        key_value_map = self.metadata.get_morphological_class_value_map()
-        vector_value_list = []
-    
-    def get_relation_vector(self, multiplier=1.3):
-        pass
-    
-    def generate_vector_profile(self):
-        for key in self.vector_configuration.keys():
-            vtype, vparam = self.vector_configuration.get(key)
-            if vtype == utils.ONE_HOT_VECTOR:
-                if key == utils.MORPH:
-                    self.vector_configuration[key] = (vtype, self.get_simple_morph_vector(vparam))
-                elif key == utils.RELATION:
-                    self.vector_configuration[key] = (vtype, self.get_relation_vector(vparam))
-                else:
-                    self.vector_configuration[key] = (vtype, oneHotVectorReader(self.get_element_list(key), vparam))
-    
-    
-    # TODO:: A Lot
     def vectorize(self):
-        self.generate_vector_profile()
-        for k in sorted(self.vector_configuration.keys()):
-            pass
+        self.file_reader.reset()
+        if all([e == None for e in self.vector_configuration.values()]):
+            raise exp.noneValueError('All values of vector configuration is "None"')
+        elif any([e != None and not isinstance(e, base.vectorReader) for e in self.vector_configuration.values()]):
+            raise TypeError('Invalid vector configuration value found.\nFound: {}'.format(self.vector_configuration))
+        vectorKeys = sorted([k for k in self.vector_configuration.keys() if self.vector_configuration.get(k) != None])
+        curSentence = self.file_reader.get_current_sentence()        
+        while True:            
+            if curSentence == None:
+                raise exp.noneValueError('Sentence cannot be "None"')
+            elif not isinstance(curSentence, list):
+                raise TypeError('Sentence must be a list')
+            elif not all([isinstance(e, base.annotatedString) for e in curSentence]):
+                raise TypeError('Sentence must be a list of "annotatedString"')
+            curSentenceMap = {}
+            for tok in curSentence:
+                vector_list = []
+                for key in vectorKeys:
+                    vector_list.append(self.vector_configuration.get(key).get_vector(tok.getValue(key)))
+                curSentenceMap[tok.getValue(utils.TID)] = npcat(vector_list)
+            self.sentence_map[self.file_reader.get_current_sentence_id()] = curSentenceMap
+            try:
+                curSentence = self.file_reader.get_next_sentence()
+            except exp.lastElementWarning:
+                break
 
-
-
+    def get_vector(self, sentence_id=None, token_id=None):
+        if sentence_id == None:
+            raise exp.noneValueError('Sentence ID cannot be "None"')
+        elif token_id == None:
+            raise exp.noneValueError('Token ID cannot be "None"')
+        elif sentence_id not in self.sentence_map.keys():
+            raise KeyError('The provided sentence ID doesnot exist.\nFound: {}'.format(sentence_id))
+        
+        elif token_id not in self.sentence_map.get(sentence_id).keys():
+            raise KeyError('The provided token ID doesnot exist.\nFound: {}'.format(token_id))
+        else:
+            return self.sentence_map.get(sentence_id).get(token_id)
+    
+    def get_vector_dimension(self):
+        return len(self.sentence_map.get(1).get(1))
+    
+    

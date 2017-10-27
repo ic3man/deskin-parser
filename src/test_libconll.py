@@ -5,21 +5,20 @@ Created on Tue Jul  4 14:58:58 2017
 @author: munshi
 """
 
-import libconll as lc
+import libbase as base
+import libconll as conll
+import libutilities as utils
+import libexceptions as exp
+import libvector as vec
+import libdata as data
 
-input_file = '/mnt/RAID0SHDD2X1TB/deskinparser/data.clean'
+import traceback
 
-cr = lc.CoNLLReader(input_file=input_file, debug=False)
-#cr = lc.CoNLLReader(input_file=input_file, debug=True)
+input_file = '/mnt/RAID0SHDD2X1TB/deskin-parser/data/data.clean'
 
-md = cr.get_metadata()
-
-print md.get_sentence_count()
-
-#sc = md.get_sentence_configuration()
-sc = md.get_morphological_class_value_map()
-
-for i in range(5):
-    print sc.get(sc.keys()[i])
-    print
+try:
+    cfr = conll.CoNLLFileReader(input_file)
+    data.slidingWindowVectorData(cfr)
+except:
+    traceback.print_exc()
 
