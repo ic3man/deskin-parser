@@ -69,9 +69,12 @@ class listOneHotVectorReader(base.vectorReader):
             vpos = self.elements.index(key)
         except KeyError:
             raise KeyError('Key doesnot exist in the vocabulary.\nFound: {}'.format(key))
-        vector = npzeros(self.dimension)        
+        vector = npzeros(self.dimension)
         vector[vpos] = 1.0
         return vector
+    
+    def get_null_vector(self):
+        return npzeros(self.dimension)
 
 # CLASS ******************************************
 class classMembersOneHotVectorReader(base.vectorReader):
@@ -130,6 +133,9 @@ class classMembersOneHotVectorReader(base.vectorReader):
                 vectorPart[self.elements.get(c).index(key.get(c))] = 1.0
             vectorList.append(vectorPart)        
         return npcat(vectorList)
+    
+    def get_null_vector(self):
+        return npcat([npzeros(self.dimension.get(c)) for c in self.classes])
 
 # CLASS ******************************************
 class word2vecTextReader(base.vectorReader):
@@ -174,6 +180,9 @@ class word2vecTextReader(base.vectorReader):
             return npzeros(self.getDimension())
         self.file_pointer.seek(vpos)
         return nparray(self.file_pointer.readline().strip().split()[1:].strip())
+ 
+    def get_null_vector(self):
+        return npzeros(self.dimension)
 
 # CLASS *************
 class CoNLLFileVector(base.fileVectorReader):
@@ -307,7 +316,6 @@ class CoNLLFileVector(base.fileVectorReader):
         else:
             return self.sentence_map.get(sentence_id).get(token_id)
     
-    def get_vector_dimension(self):
-        return len(self.sentence_map.get(1).get(1))
-    
+    def get_null_vector(self):
+        return npzeros(len(self.sentence_map.get(1).get(1)))
     

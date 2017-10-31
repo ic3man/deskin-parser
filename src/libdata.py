@@ -26,6 +26,8 @@ import libconll as conll
 import libutilities as utils
 import libexceptions as exp
 import libvector as vec
+
+import pandas as pd
        
 # CLASS ******************************************
 class slidingWindowVectorData:
@@ -59,20 +61,31 @@ class slidingWindowVectorData:
         else:
             self.window_width = window_width
         self.input_data_matrix = {}
-        self.outut_data_matrix = {}
+        self.output_data_matrix = {}
         self.__populate_data_metrix()
         
+        # visualize data
+        for k in sorted([k for k in self.output_data_matrix.keys() if k[0]==1]):
+            df = pd.DataFrame(self.output_data_matrix.get(k))
+            print df.index[df[1.0]].tolist()
+        
     def __populate_data_metrix(self):     
-        self.input_reader.reset()     
+        self.input_reader.reset()
         curSentence = self.input_reader.get_current_sentence()
         while True:
-            sentID = self.input_reader.get_current_sentence_id()        
-            curSentence.sort(key = lambda x: int(x.getValue(utils.TID)))
+            """
+            print '>>SENT[', self.input_reader.get_current_sentence_id(), ']',  len(curSentence)
+            print curSentence
+            print
+            """
+            # input data generation
+            sentID = self.input_reader.get_current_sentence_id()
+            curSentence.sort(key = lambda x: x.getValue(utils.TID))
             # input generation
             inputVectors = [self.vector_reader.get_vector(self.input_reader.get_current_sentence_id(), t.getValue(utils.TID)) for t in curSentence]
             for i in range(self.window_width - 1):
-                inputVectors[:0] = [npzeros(self.vector_reader.get_vector_dimension())]
-                inputVectors.apped(npzeros(self.vector_reader.get_vector_dimension()))
+                inputVectors[:0] = [self.vector_reader.get_null_vector()]
+                inputVectors.append(self.vector_reader.get_null_vector())
             startIndex = 0
             endIndex = self.window_width
             counter = 0
@@ -85,46 +98,53 @@ class slidingWindowVectorData:
                     startIndex += 1
                     endIndex += 1
                     counter += 1
+            
             # Output generation
             for i in range(self.window_width - 1):
                 curSentence[:0] = [utils.NULL]
-                curSentence.apped(utils.NULL)
+                curSentence.append(utils.NULL)
+            output_vector_reader = vec.listOneHotVectorReader(element_list=self.input_reader.get_key_elements(key=utils.RELATION))
             startIndex = 0
             endIndex = self.window_width
             counter = 0
             while True:            
-                dataPoint1 = npzeros((self.window_width+3)*self.window_width)
-                dataPoint2 = [None]*((self.window_width+3)*self.window_width)
-                curBlock = [e for e in curSentence[startIndex:endIndex]]
-                for i in range(self.window_width):
-                    e = curBlock[i]
+                dataPoint = []
+                for e in curSentence[startIndex:endIndex]:
                     if e == utils.NULL:
-                        continue
-                    tid = int(e.getValue(utils.TID))
-                    hid = int(e.getValue(utils.RELATION_HEAD))
-                    if hid == 0:
-                        dataPoint1[(self.window_width+3)*i] = 1.0
-                        dataPoint2[(self.window_width+3)*i] = e.getValue(utils.RELATION)
+                        dataPoint.append([output_vector_reader.get_null_vector()]*(self.window_width+3))
                     else:
-                        hIndex = next((j for j, item in enumerate(curBlock) if int(item.getValue(utils.TID)) == hid), -1)
-                        if hIndex == -1:
-                            if tid > hid:
-                                dataPoint1[(self.window_width+3)*i+1] = 1.0
-                                dataPoint2[(self.window_width+3)*i+1] = e.getValue(utils.RELATION)
-                            elif tid < hid:
-                                dataPoint1[(self.window_width+3)*i+2] = 1.0
-                                dataPoint2[(self.window_width+3)*i+2] = e.getValue(utils.RELATION)
+                        hid = e.getValue(utils.RELATION_HEAD)
+                        rmap = [output_vector_reader.get_null_vector()]*(self.window_width+3)
+                        rel = output_vector_reader.get_vector(key=e.getValue(utils.RELATION))
+                        if hid == 0:
+                            rmap[0] = rel
+                            dataPoint.append(rmap)
                         else:
-                            dataPoint1[(self.window_width+3)*i+hIndex] = 1.0
-                            dataPoint2[(self.window_width+3)*i+hIndex] = e.getValue(utils.RELATION)
-                self.output_data_matrix[(sentID, counter)] = [dataPoint1, dataPoint2]
+                            hIndex = next((j for j, item in enumerate(curSentence) if item != utils.NULL and item.getValue(utils.TID) == hid), -1)
+                            if hIndex == -1:
+                                raise KeyError('Invalid token ID found')
+                            elif hIndex < startIndex:
+                                rmap[1] = rel
+                                dataPoint.append(rmap)
+                            elif hIndex >= endIndex:
+                                rmap[2] = rel
+                                dataPoint.append(rmap)
+                            else:
+                                rmap[3+hIndex-startIndex] = rel
+                                dataPoint.append(rmap)
+                self.output_data_matrix[(sentID, counter)] = npcat([npcat(e) for e in dataPoint])
                 if endIndex == len(inputVectors):
                     break
                 else:
                     startIndex += 1
                     endIndex += 1
                     counter += 1
+            curSentence = None
             try:
-                curSentence = self.file_reader.get_next_sentence()
+                curSentence = self.input_reader.get_next_sentence()
             except exp.lastElementWarning:
                 break 
+    
+    def get_datapoint_index_list(self):
+        return self.input_data_matrix.keys()
+    

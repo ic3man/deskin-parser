@@ -41,10 +41,13 @@ class fileReader:
 # CLASS *********************
 class vectorReader:
 
-    def get_vector(self, key=None):
+    def get_vector(self):
         raise exp.implimentationError('Class method not initialized yet.')
     
-    def updateReader(self, new_elements=None):
+    def get_null_vector(self):
+        raise exp.implimentationError('Class method not initialized yet.')
+    
+    def updateReader(self):
         raise exp.implimentationError('Class method not initialized yet.')
 
 # CLASS *********************
@@ -63,6 +66,9 @@ class fileVectorReader:
         raise exp.implimentationError('Class method not initialized yet.')
     
     def get_vector_dimension(self):
+        raise exp.implimentationError('Class method not initialized yet.')
+    
+    def get_null_vector(self):
         raise exp.implimentationError('Class method not initialized yet.')
 
 # CLASS *********************

@@ -497,7 +497,7 @@ class annotatedCoNLLToken(base.annotatedString):
         elif len(token) != len(token_def):
             raise exp.unequalValueError('Token list size doesnot match the definition list size.\n{}(Token):{}(Definition)'.format(len(token), len(token_def)))
         else:
-            self.annotation_map = {token_def[i]:token[i].lower() for i in range(len(token)) if token_def[i] != utils.NOT_IN_USE}            
+            self.annotation_map = {token_def[i]:int(token[i]) if token_def[i] in [utils.TID, utils.RELATION_HEAD] else token[i].lower() for i in range(len(token)) if token_def[i] != utils.NOT_IN_USE}
     
     def getAnnotationKeyList(self):
         return self.annotation_map.keys()
@@ -561,7 +561,7 @@ class CoNLLFileReader(base.fileReader):
         class variable current_sentence and load it in the sentence buffer.*
         
         :return: Nothing.
-        :raise KeyError: If the sentence ID is unknown.       
+        :raise KeyError: If the sentence ID is unknown.
         """
         try:        
             initLine, position, config = self.metadata.get_sentence_configuration(sentence_number=self.current_sentence)
@@ -584,13 +584,14 @@ class CoNLLFileReader(base.fileReader):
                 for i in range(len(sentenceBuffer)):#-------------------------------  cycle through the sentence buffer
                     if config[i][-1] == utils.BASIC_TEN_SLOT_TYPE:
                         self.sentence_buffer.append(annotatedCoNLLToken(token=[e.strip() for e in sentenceBuffer[i].strip().split()]))
-                    return
+                return
             else:
                 sentenceBuffer.append(line.strip())
                 lineOffset += 1
     
     def reset(self):
         self.current_sentence = 1
+        self.sentence_buffer = []
     
     def get_current_sentence(self):
         """ *Returns the current sentence buffer. However, if the buffer is empty 
@@ -620,6 +621,7 @@ class CoNLLFileReader(base.fileReader):
         if self.current_sentence == self.metadata.get_sentence_count():
             raise exp.lastElementWarning('Current sentence is the last sentence.')
         self.current_sentence += 1
+        self.sentence_buffer = []
         self.__read_sentence()
         return self.sentence_buffer
     
@@ -634,6 +636,7 @@ class CoNLLFileReader(base.fileReader):
         if self.current_sentence == 1:
             raise exp.firstElementWarning('Current sentence is the first sentence.')
         self.current_sentence -= 1
+        self.sentence_buffer = []
         self.__read_sentence()
         return self.sentence_buffer        
 

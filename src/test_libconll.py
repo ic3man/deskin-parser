@@ -17,8 +17,9 @@ import traceback
 input_file = '/mnt/RAID0SHDD2X1TB/deskin-parser/data/data.clean'
 
 try:
-    cfr = conll.CoNLLFileReader(input_file)
-    data.slidingWindowVectorData(cfr)
+    cfr = conll.CoNLLFileReader(input_file) # file reader object
+    td = data.slidingWindowVectorData(cfr) # training data
+    
 except:
     traceback.print_exc()
 
