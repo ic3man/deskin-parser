@@ -60,16 +60,12 @@ class slidingWindowVectorData:
             raise ValueError('Window width cannot be less than {}.\nFound: {}'.format(2, window_width))
         else:
             self.window_width = window_width
+        self.relation_reader = vec.listOneHotVectorReader(element_list=self.input_reader.get_key_elements(key=utils.RELATION))
         self.input_data_matrix = {}
         self.output_data_matrix = {}
         self.__populate_data_metrix()
         
-        # visualize data
-        for k in sorted([k for k in self.output_data_matrix.keys() if k[0]==1]):
-            df = pd.DataFrame(self.output_data_matrix.get(k))
-            print df.index[df[1.0]].tolist()
-        
-    def __populate_data_metrix(self):     
+    def __populate_data_metrix(self):
         self.input_reader.reset()
         curSentence = self.input_reader.get_current_sentence()
         while True:
@@ -89,7 +85,7 @@ class slidingWindowVectorData:
             startIndex = 0
             endIndex = self.window_width
             counter = 0
-            while True:            
+            while True:
                 dataPoint = npcat([inputVectors[i] for i in range(startIndex, endIndex)])
                 self.input_data_matrix[(sentID, counter)] = dataPoint
                 if endIndex == len(inputVectors):
@@ -103,7 +99,7 @@ class slidingWindowVectorData:
             for i in range(self.window_width - 1):
                 curSentence[:0] = [utils.NULL]
                 curSentence.append(utils.NULL)
-            output_vector_reader = vec.listOneHotVectorReader(element_list=self.input_reader.get_key_elements(key=utils.RELATION))
+
             startIndex = 0
             endIndex = self.window_width
             counter = 0
@@ -111,11 +107,11 @@ class slidingWindowVectorData:
                 dataPoint = []
                 for e in curSentence[startIndex:endIndex]:
                     if e == utils.NULL:
-                        dataPoint.append([output_vector_reader.get_null_vector()]*(self.window_width+3))
+                        dataPoint.append([self.relation_reader.get_null_vector()]*(self.window_width+3))
                     else:
                         hid = e.getValue(utils.RELATION_HEAD)
-                        rmap = [output_vector_reader.get_null_vector()]*(self.window_width+3)
-                        rel = output_vector_reader.get_vector(key=e.getValue(utils.RELATION))
+                        rmap = [self.relation_reader.get_null_vector()]*(self.window_width+3)
+                        rel = self.relation_reader.get_vector(key=e.getValue(utils.RELATION))
                         if hid == 0:
                             rmap[0] = rel
                             dataPoint.append(rmap)
@@ -148,3 +144,8 @@ class slidingWindowVectorData:
     def get_datapoint_index_list(self):
         return self.input_data_matrix.keys()
     
+    def get_input_dimension(self):
+        return len(self.input_data_matrix.values()[0])
+
+    def get_output_dimension(self):
+        return len(self.output_data_matrix.values()[0])
