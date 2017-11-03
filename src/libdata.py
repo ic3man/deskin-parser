@@ -27,7 +27,7 @@ import libutilities as utils
 import libexceptions as exp
 import libvector as vec
 
-import pandas as pd
+from random import randint
        
 # CLASS ******************************************
 class slidingWindowVectorData:
@@ -139,9 +139,9 @@ class slidingWindowVectorData:
             try:
                 curSentence = self.input_reader.get_next_sentence()
             except exp.lastElementWarning:
-                break 
+                break
     
-    def get_datapoint_index_list(self):
+    def __get_datapoint_index_list(self):
         return self.input_data_matrix.keys()
     
     def get_input_dimension(self):
@@ -149,3 +149,42 @@ class slidingWindowVectorData:
 
     def get_output_dimension(self):
         return len(self.output_data_matrix.values()[0])
+    
+    def get_dataset(self, **kwargs):
+        retMap = {}
+        if len(kwargs) == 0:
+            kwargs['all'] = 1.0
+            retMap['all'] = [[], []]
+        else:
+            for key, value in kwargs.items():
+                if value == None:
+                    raise exp.noneValueError('Dataset split value cannot be "None"')
+                elif not isinstance(value, float):
+                    raise TypeError('Dataset split value must be of numaric type./nFound: {}'.format(type(value)))
+                elif value < 0:
+                    raise exp.smallerValueError('Dataset split value cannot be less than 0.\nFound: {}'.format(value))
+                elif value > 1.0:
+                    raise exp.greaterValueError('Dataset split value cannot be greater than 1.\nFound: {}'.format(value))
+                else:
+                    retMap[key] = [[], []]
+            if sum(kwargs.values()) != 1.0:
+                raise ValueError('The sum of dataset split valuse must be equal to 1.0.\nFound: {}'.format(sum(kwargs.values())))
+        elements = self.__get_datapoint_index_list()
+        splitCountMap = {k:int(len(elements)*v) for k,v in kwargs.items()}        
+        # debug
+        if sum(splitCountMap.values()) < len(elements):
+            print '>>>DEBUG: Real Total (', len(elements), ') :: Split Total (', sum(splitCountMap.values()), ')'
+        for key, value in splitCountMap.items():
+            if len(elements) < value:
+                value = len(elements)
+            for i in range(value):
+                cIndex = elements.pop(randint(0, len(elements)-1))
+                retMap[key][0].append(self.input_data_matrix.get(cIndex))
+                retMap[key][1].append(self.output_data_matrix.get(cIndex))
+        if len(elements):
+            key = splitCountMap.keys()[randint(0, len(splitCountMap.keys())-1)]
+            for e in elements:
+                retMap[key][0].append(self.input_data_matrix.get(e))
+                retMap[key][1].append(self.output_data_matrix.get(e))
+        return retMap
+            
