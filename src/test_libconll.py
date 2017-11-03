@@ -29,9 +29,12 @@ except:
     traceback.print_exc()
 
 
+layer_one_dimension = 768
+layer_two_dimension = 768
+
 # define the architecture of the network
 model = Sequential()
-model.add(Dense(768, input_dim=3072, init="uniform", activation="relu"))
-model.add(Dense(384, init="uniform", activation="relu"))
-model.add(Dense(2))
+model.add(Dense(layer_one_dimension, input_dim=td.get_input_dimension(), init="uniform", activation="relu"))
+model.add(Dense(layer_two_dimension, init="uniform", activation="relu"))
+model.add(Dense(td.get_output_dimension()))
 model.add(Activation("softmax"))
