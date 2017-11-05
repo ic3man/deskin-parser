@@ -593,6 +593,16 @@ class CoNLLFileReader(base.fileReader):
         self.current_sentence = 1
         self.sentence_buffer = []
     
+    def set_current_sentence(self, sentence_id=None):
+        if sentence_id == None:
+            raise exp.noneValueError('Sentence ID cannot be "None"')
+        elif not isinstance(sentence_id, int):
+            raise TypeError('Sentence ID must be a integer.\nFound: {}'.format(sentence_id))
+        elif 1 <= sentence_id <= self.metadata.get_sentence_count():
+            self.current_sentence = sentence_id
+        else:
+            raise ValueError('Sentence ID must be between {} and {}.\nFound: {}'.format(1, self.metadata.get_sentence_count(), sentence_id))
+    
     def get_current_sentence(self):
         """ *Returns the current sentence buffer. However, if the buffer is empty 
         the read_sentence() method will be called to load the buffer first.*

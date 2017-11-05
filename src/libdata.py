@@ -55,7 +55,7 @@ class slidingWindowVectorData:
                 else:
                     for k in vector_config.keys():
                         self.vector_reader.set_reader(k, vector_config.get(k))
-            self.vector_reader.vectorize()
+            #self.vector_reader.vectorize()
         if window_width < 2:
             raise ValueError('Window width cannot be less than {}.\nFound: {}'.format(2, window_width))
         else:
@@ -78,7 +78,9 @@ class slidingWindowVectorData:
             sentID = self.input_reader.get_current_sentence_id()
             curSentence.sort(key = lambda x: x.getValue(utils.TID))
             # input generation
-            inputVectors = [self.vector_reader.get_vector(self.input_reader.get_current_sentence_id(), t.getValue(utils.TID)) for t in curSentence]
+            vectorMap = self.vector_reader.generate_vector(sentID)
+            inputVectors = [vectorMap.get(k) for k in sorted(vectorMap.keys())]
+            #inputVectors = [self.vector_reader.get_vector(self.input_reader.get_current_sentence_id(), t.getValue(utils.TID)) for t in curSentence]
             for i in range(self.window_width - 1):
                 inputVectors[:0] = [self.vector_reader.get_null_vector()]
                 inputVectors.append(self.vector_reader.get_null_vector())
@@ -86,6 +88,7 @@ class slidingWindowVectorData:
             endIndex = self.window_width
             counter = 0
             while True:
+                #print [inputVectors[i] for i in range(startIndex, endIndex)]
                 dataPoint = npcat([inputVectors[i] for i in range(startIndex, endIndex)])
                 self.input_data_matrix[(sentID, counter)] = dataPoint
                 if endIndex == len(inputVectors):

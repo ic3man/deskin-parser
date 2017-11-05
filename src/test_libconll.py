@@ -22,7 +22,8 @@ from keras.layers import Dense
 import numpy as np
 
 #input_file = '/mnt/RAID0SHDD2X1TB/deskin-parser/data/data.clean'
-input_file = '/mnt/RAID0SHDD2X1TB/deskin-parser/data/fr-ud-train.tilt-201703-proj.conllu.clean.train.conll'
+#input_file = '/mnt/RAID0SHDD2X1TB/deskin-parser/data/fr-ud-train.tilt-201703-proj.conllu.clean.train.conll'
+input_file = '/home/ic3man/work/deskin-parser/data/fr-ud-train.tilt-201703-proj.conllu.clean.train.conll'
 
 try:
     cfr = conll.CoNLLFileReader(input_file) # file reader object
@@ -55,4 +56,3 @@ model.fit(np.array(train_in), np.array(train_out), nb_epoch=10, batch_size=1)
 
 scores = model.evaluate(np.array(test_in), np.array(test_out), verbose=0)
 print("Accuracy: %.2f%%" % (scores[1]*100))
-

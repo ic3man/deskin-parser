@@ -225,6 +225,7 @@ class CoNLLFileVector(base.fileVectorReader):
                                       utils.MORPH     : None }
         # by default no embeddings shall be used ------------------------------
         self.sentence_map = {}
+        self.vector_dimension = None
     
     def set_one_hot_reader(self, key=None, dimension_multiplier=1.3):
         if key == None:
@@ -302,6 +303,33 @@ class CoNLLFileVector(base.fileVectorReader):
                 curSentence = self.file_reader.get_next_sentence()
             except exp.lastElementWarning:
                 break
+    
+    def generate_vector(self, sentence_id=None):
+        curSentID = self.file_reader.get_current_sentence_id()
+        if all([e == None for e in self.vector_configuration.values()]):
+            raise exp.noneValueError('All values of vector configuration is "None"')
+        elif any([e != None and not isinstance(e, base.vectorReader) for e in self.vector_configuration.values()]):
+            raise TypeError('Invalid vector configuration value found.\nFound: {}'.format(self.vector_configuration))
+        vectorKeys = sorted([k for k in self.vector_configuration.keys() if self.vector_configuration.get(k) != None])
+        self.file_reader.set_current_sentence(sentence_id)
+        curSentence = self.file_reader.get_current_sentence()
+        if curSentence == None:
+            raise exp.noneValueError('Sentence cannot be "None"')
+        elif not isinstance(curSentence, list):
+            raise TypeError('Sentence must be a list.\nFound: {}'.format(type(curSentence)))
+        elif not all([isinstance(e, base.annotatedString) for e in curSentence]):
+            raise TypeError('Sentence must be a list of "annotatedString".\nFound: {}',[type(e) for e in curSentence])
+        curSentenceMap = {}
+        for tok in curSentence:
+            vector_list = []
+            for key in vectorKeys:
+                vector_list.append(self.vector_configuration.get(key).get_vector(tok.getValue(key)))
+            curSentenceMap[tok.getValue(utils.TID)] = npcat(vector_list)
+        if self.vector_dimension == None:
+            self.vector_dimension = len(curSentenceMap[1])
+        self.file_reader.set_current_sentence(curSentID)
+        return curSentenceMap
+        
 
     def get_vector(self, sentence_id=None, token_id=None):
         if sentence_id == None:
@@ -317,5 +345,5 @@ class CoNLLFileVector(base.fileVectorReader):
             return self.sentence_map.get(sentence_id).get(token_id)
     
     def get_null_vector(self):
-        return npzeros(len(self.sentence_map.get(1).get(1)))
+        return npzeros(self.vector_dimension)
     
